@@ -3,28 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planning de Révisions — v3 (cloud ready)</title>
+  <title>Planning de Révisions — cloud</title>
   <style>
-    :root{
-      --bg:#0b1220; --card:#121a2b; --muted:#a6b0c3; --text:#e9eef7; --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
-    }
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";margin:0;color:var(--text);background:linear-gradient(180deg,#0b1220,#0d1424 35%,#0f1628)}
+    :root{--bg:#0b1220;--card:#121a2b;--muted:#a6b0c3;--text:#e9eef7;--primary:#4caf50;--accent:#2c3e50;--danger:#e74c3c}
+    *{box-sizing:border-box} body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";margin:0;color:var(--text);background:linear-gradient(180deg,#0b1220,#0f1628)}
     header{position:sticky;top:0;z-index:20;background:rgba(11,18,32,.75);backdrop-filter:blur(8px);border-bottom:1px solid #1f2937}
-    nav{display:flex;gap:.5rem;align-items:center;max-width:1100px;margin:0 auto;padding:.75rem 1rem}
-    nav a, nav button{color:#cfe2ff;text-decoration:none;font-weight:600;padding:.5rem .75rem;border-radius:12px;border:1px solid #223352;background:#1b2942;cursor:pointer}
+    nav{display:flex;gap:.5rem;align-items:center;max-width:1100px;margin:0 auto;padding:.75rem 1rem;flex-wrap:wrap}
+    nav a,nav button{color:#cfe2ff;text-decoration:none;font-weight:600;padding:.5rem .75rem;border-radius:12px;border:1px solid #223352;background:#1b2942;cursor:pointer}
     nav a[aria-current="page"],nav a:hover,nav button:hover{background:#223352}
     main{max-width:1100px;margin:0 auto;padding:1rem}
     .tab{display:none}.tab.active{display:block}
     .grid{display:grid;gap:1rem}@media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
     .card{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    h2{margin:.25rem 0 1rem}
-    iframe{border:0;width:100%;border-radius:12px}
+    h2{margin:.25rem 0 1rem} iframe{border:0;width:100%;border-radius:12px}
     input,select,textarea,button{width:100%;padding:.7rem .8rem;border-radius:12px;border:1px solid #25364f;background:#0f172a;color:var(--text)}
-    textarea{min-height:90px}
-    button{cursor:pointer;background:#1b8f3f;border:1px solid #1e9a45;font-weight:700}
-    button.secondary{background:#1b2942;border-color:#223352}
-    button.danger{background:#7a1f1b;border-color:#8a241f}
+    textarea{min-height:90px} button{cursor:pointer;background:#1b8f3f;border:1px solid #1e9a45;font-weight:700}
+    button.secondary{background:#1b2942;border-color:#223352} button.danger{background:#7a1f1b;border-color:#8a241f}
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1 1 220px}
     .list{max-height:420px;overflow:auto}
     .pill{display:inline-flex;align-items:center;gap:.5ch;background:#11213a;border:1px solid #223352;border-radius:999px;padding:.2rem .6rem;font-size:.85rem;color:#cfe2ff}
@@ -41,19 +35,18 @@
     .planning-table th,.planning-table td{vertical-align:top;text-align:left}
     .planning-table th{font-size:.95rem;color:#cfe2ff;padding:.25rem .5rem}
     .planning-col{background:#0f172a;border:1px solid #243349;border-radius:12px;padding:.75rem}
-    .muted{color:var(--muted)}
-    .hidden{display:none}
+    .muted{color:var(--muted)} .hidden{display:none}
   </style>
 
-  <!-- Supabase (CDN) + config intégrée : REMPLACE ICI tes 2 valeurs -->
+  <!-- Supabase (CDN) + tes 2 valeurs à remplacer -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     /* ========= REMPLACE ICI ========= */
-    const SUPABASE_URL = "https://smxqtzbqachmzefyjpuj.supabase.co";       /* <-- remplace */
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";                 /* <-- remplace */
+    const SUPABASE_URL = "https://smxqtzbqachmzefyjpuj.supabase.co";     /* <-- remplace */
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";               /* <-- remplace */
     /* ================================= */
+    const REDIRECT_URL = "https://planning-revisions.vercel.app";
     window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const REDIRECT_URL = "https://planning-revisions.vercel.app"; /* redirection forcée */
   </script>
 </head>
 <body>
@@ -64,10 +57,13 @@
       <a href="#" data-tab="planning">Planning à 5 jours</a>
       <a href="#" data-tab="agenda">Agenda</a>
       <a href="#" data-tab="matieres">Matières</a>
-      <!-- Boutons Auth -->
-      <div style="margin-left:auto; display:flex; gap:.5rem">
+      <!-- Auth actions -->
+      <div style="margin-left:auto; display:flex; gap:.5rem; flex-wrap:wrap">
         <button id="btnLogin" class="secondary" type="button">Se connecter</button>
         <button id="btnLoginCode" class="secondary" type="button">Se connecter (code)</button>
+        <button id="btnLoginGoogle" class="secondary" type="button">Se connecter avec Google</button>
+        <button id="btnSignup" class="secondary" type="button">Créer un compte</button>
+        <button id="btnLoginPwd" class="secondary" type="button">Se connecter (mot de passe)</button>
         <button id="btnLogout" class="secondary" type="button" style="display:none">Se déconnecter</button>
       </div>
     </nav>
@@ -191,7 +187,7 @@
     </section>
   </main>
 
-  <!-- Template pour un item -->
+  <!-- Template item -->
   <template id="itemTpl">
     <div class="tile" data-id="">
       <div class="row" style="align-items:center">
@@ -212,17 +208,16 @@
   </template>
 
   <script>
-    /* ===================== UTILITAIRES ===================== */
+    /* ============== Utils ============== */
     const JALONS=[0,1,3,7,15,30], FR='fr-FR';
     const fmtDateLabel=d=>d.toLocaleDateString(FR,{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
     const toLocalDate=s=>new Date(`${s}T00:00:00`);
     const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
     const isoDate=d=>d.toISOString().slice(0,10);
     const todayIso=()=>isoDate(new Date());
-    // XSS minimal (corrigé)
     const escapeHtml=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
-    /* ===================== STORE LOCAL ===================== */
+    /* ============== Store local ============== */
     const store={
       get matieres(){return JSON.parse(localStorage.getItem('matieres'))||['Mathématiques','Physique-chimie','Français','Histoire-géographie','Anglais','Espagnol','Enseignement moral et civique','Techno','Enseignement Spécifique','EPS']},
       set matieres(v){localStorage.setItem('matieres',JSON.stringify(v))},
@@ -230,22 +225,16 @@
       set items(v){localStorage.setItem('items_v3',JSON.stringify(v))}
     };
 
-    // Migration éventuelle depuis anciens formats
     (function migrate(){
       if(!localStorage.getItem('items_v3')){
         const revs=JSON.parse(localStorage.getItem('revisions_v2'))||JSON.parse(localStorage.getItem('revisions'))||[];
-        const mapped=(revs||[]).map(r=>({
-          id:crypto.randomUUID(), type:'revision', matiere:r.matiere,
-          titre:r.contenu?.slice(0,80)||'Révision', description:r.commentaire||'',
-          dateCreation:Date.now(), etat:'a_faire', baseDate:r.date, jalons:[...JALONS]
-        }));
+        const mapped=(revs||[]).map(r=>({id:crypto.randomUUID(),type:'revision',matiere:r.matiere,titre:r.contenu?.slice(0,80)||'Révision',description:r.commentaire||'',dateCreation:Date.now(),etat:'a_faire',baseDate:r.date,jalons:[...JALONS]}));
         if(mapped.length) localStorage.setItem('items_v3',JSON.stringify(mapped));
       }
     })();
 
-    /* ===================== ELEMENTS ===================== */
+    /* ============== Elements ============== */
     const els={
-      tabs:document.querySelectorAll('nav a[data-tab]'),
       typeSelect:document.getElementById('typeSelect'),
       matiereSelect:document.getElementById('matiereSelect'),
       titreInput:document.getElementById('titreInput'),
@@ -277,7 +266,7 @@
       listeMatieres:document.getElementById('listeMatieres')
     };
 
-    /* ===================== NAV TABS ===================== */
+    /* ============== Onglets ============== */
     document.querySelectorAll('nav a[data-tab]').forEach(a=>a.addEventListener('click',e=>{
       e.preventDefault();
       const id=a.getAttribute('data-tab');
@@ -287,28 +276,25 @@
       document.getElementById(id).classList.add('active');
     }));
 
-    /* ===================== MATIERES UI ===================== */
+    /* ============== Matières UI ============== */
     function renderMatieres(){
       const ms=[...store.matieres].sort((a,b)=>a.localeCompare(b,'fr'));
-      els.matiereSelect.innerHTML=ms.map(m=>`<option value="${m}">${m}</option>`).join('');
-      els.filtreMatiere.innerHTML=`<option value="">Toutes les matières</option>`+ms.map(m=>`<option>${m}</option>`).join('');
-      els.listeMatieres.innerHTML='';
+      document.getElementById('matiereSelect').innerHTML=ms.map(m=>`<option value="${m}">${m}</option>`).join('');
+      document.getElementById('filtreMatiere').innerHTML=`<option value="">Toutes les matières</option>`+ms.map(m=>`<option>${m}</option>`).join('');
+      const ul=document.getElementById('listeMatieres'); ul.innerHTML='';
       ms.forEach(m=>{
         const utilisee=store.items.some(r=>r.matiere===m);
         const li=document.createElement('li'); li.innerHTML=`<span class="pill">${escapeHtml(m)}</span>`;
-        if(!utilisee){
-          const btn=document.createElement('button'); btn.textContent='Supprimer'; btn.className='danger'; btn.style.width='auto';
-          btn.addEventListener('click',()=>{ if(confirm('Supprimer cette matière ?')){ store.matieres=store.matieres.filter(x=>x!==m); renderMatieres(); }});
-          li.append(' ',btn);
-        }
-        els.listeMatieres.appendChild(li);
+        if(!utilisee){ const btn=document.createElement('button'); btn.textContent='Supprimer'; btn.className='danger'; btn.style.width='auto'; btn.onclick=()=>{ if(confirm('Supprimer cette matière ?')){ store.matieres=store.matieres.filter(x=>x!==m); renderMatieres(); } }; li.append(' ',btn); }
+        ul.appendChild(li);
       });
     }
-    document.getElementById('btnAjouterMatiere').addEventListener('click',()=>{
-      const m=els.nouvelleMatiere.value.trim(); if(m&&!store.matieres.includes(m)){ store.matieres=[...store.matieres,m]; els.nouvelleMatiere.value=''; renderMatieres(); }
-    });
+    document.getElementById('btnAjouterMatiere').onclick=()=>{
+      const m=document.getElementById('nouvelleMatiere').value.trim();
+      if(m&&!store.matieres.includes(m)){ store.matieres=[...store.matieres,m]; document.getElementById('nouvelleMatiere').value=''; renderMatieres(); }
+    };
 
-    /* ===================== ITEMS (CRUD) ===================== */
+    /* ============== CRUD Items ============== */
     let addItem=obj=>{store.items=[...store.items,obj]};
     let updateItem=(id,patch)=>{store.items=store.items.map(i=>i.id===id?{...i,...patch}:i)};
     let deleteItem=id=>{store.items=store.items.filter(i=>i.id!==id)};
@@ -332,38 +318,21 @@
       els.chapitresTotal.value=''; els.echeanceLecture.value=''; els.typeSelect.value='revision'; switchTypeUI();
     }
 
-    document.getElementById('btnSauver').addEventListener('click',()=>{
+    document.getElementById('btnSauver').onclick=()=>{
       const type=els.typeSelect.value, matiere=els.matiereSelect.value;
       const titre=els.titreInput.value.trim()||(type==='lecture'?(els.ouvrageTitre.value.trim()||'Lecture'):'Sans titre');
       const description=els.descriptionInput.value.trim();
       if(!matiere) return alert('Choisis une matière.');
       let payload={id:editingId||crypto.randomUUID(),type,matiere,titre,description,dateCreation:Date.now(),etat:'a_faire'};
-
-      if(type==='revision'){
-        const baseDate=els.dateRevision.value; if(!baseDate) return alert('Date requise.');
-        payload={...payload,baseDate,jalons:[...JALONS]};
-      }
-      if(type==='devoir_rendre'){
-        const echeance=els.echeanceRendre.value; if(!echeance) return alert('Échéance requise.');
-        payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:0};
-      }
-      if(type==='devoir_preparer'){
-        const echeance=els.echeancePreparer.value; if(!echeance) return alert('Échéance requise.');
-        const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.');
-        payload={...payload,echeance,dureeTotaleEstimee:dureeTotale,sessions:pendingSessions||[]};
-      }
-      if(type==='lecture'){
-        const titreO=els.ouvrageTitre.value.trim(); if(!titreO) return alert("Titre de l'ouvrage requis.");
-        const chapTotal=Number(els.chapitresTotal.value||0); if(!chapTotal) return alert('Nombre de chapitres requis.');
-        const echeance=els.echeanceLecture.value||null;
-        payload={...payload,ouvrage:{titre:titreO,auteur:els.ouvrageAuteur.value.trim()||''},chapitresTotal:chapTotal,chapitresLus:0,echeance,repartition:pendingRepartition||[]};
-      }
-
+      if(type==='revision'){const baseDate=els.dateRevision.value;if(!baseDate) return alert('Date requise.'); payload={...payload,baseDate,jalons:[...JALONS]};}
+      if(type==='devoir_rendre'){const echeance=els.echeanceRendre.value;if(!echeance) return alert('Échéance requise.'); payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:0};}
+      if(type==='devoir_preparer'){const echeance=els.echeancePreparer.value;if(!echeance) return alert('Échéance requise.'); const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.'); payload={...payload,echeance,dureeTotaleEstimee:dureeTotale,sessions:pendingSessions||[]};}
+      if(type==='lecture'){const titreO=els.ouvrageTitre.value.trim(); if(!titreO) return alert("Titre de l'ouvrage requis."); const chapTotal=Number(els.chapitresTotal.value||0); if(!chapTotal) return alert('Nombre de chapitres requis.'); const echeance=els.echeanceLecture.value||null; payload={...payload,ouvrage:{titre:titreO,auteur:els.ouvrageAuteur.value.trim()||''},chapitresTotal:chapTotal,chapitresLus:0,echeance,repartition:pendingRepartition||[]};}
       if(editingId) updateItem(editingId,payload); else addItem(payload);
       clearForm(); refreshAll();
-    });
+    };
 
-    document.getElementById('btnPlanifierAuto').addEventListener('click',()=>{
+    document.getElementById('btnPlanifierAuto').onclick=()=>{
       const echeance=els.echeancePreparer.value, dureeTotale=Number(els.dureeTotale.value||0);
       if(!echeance||!dureeTotale) return alert('Échéance et durée requises.');
       const start=toLocalDate(todayIso()), end=toLocalDate(echeance);
@@ -371,9 +340,9 @@
       const sessions=Array.from({length:sessionsCount},(_,i)=>({date:isoDate(addDays(start,Math.round(i*(days-1)/Math.max(1,sessionsCount-1)))),duree:chunk,fait:false}));
       if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='devoir_preparer'){updateItem(editingId,{sessions}); alert(`Plan créé: ${sessions.length} sessions de ${chunk} min.`); refreshAll(); return;}}
       pendingSessions=sessions; alert(`Plan prêt: ${sessions.length} sessions seront ajoutées à l'enregistrement.`);
-    });
+    };
 
-    document.getElementById('btnRepartirLecture').addEventListener('click',()=>{
+    document.getElementById('btnRepartirLecture').onclick=()=>{
       const chapTotal=Number(els.chapitresTotal.value||0), echeance=els.echeanceLecture.value;
       if(!(chapTotal&&echeance)) return alert('Indique le nombre de chapitres et une échéance.');
       const start=toLocalDate(todayIso()), end=toLocalDate(echeance), days=Math.max(1,Math.ceil((end-start)/86400000));
@@ -381,7 +350,7 @@
       const repartition=Array.from({length:days},(_,i)=>{const nb=base+(i<extra?1:0);return{date:isoDate(addDays(start,i)),chapitres:nb,fait:false}}).filter(p=>p.chapitres>0);
       if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='lecture'){updateItem(editingId,{repartition}); alert(`Répartition créée: ${repartition.length} jours.`); refreshAll(); return;}}
       pendingRepartition=repartition; alert(`Répartition prête: ${repartition.length} jours seront ajoutés à l'enregistrement.`);
-    });
+    };
 
     function badgeFor(t){const s=document.createElement('span'); s.className='badge '+(t==='revision'?'rev':t==='devoir_rendre'?'rendre':t==='devoir_preparer'?'prep':'lect'); s.textContent=t==='revision'?'Révision':t==='devoir_rendre'?'À rendre':t==='devoir_preparer'?'À préparer':'Lecture'; return s;}
     function percentFor(item){
@@ -401,227 +370,208 @@
 
     function renderItems(){
       const items=[...store.items].sort((a,b)=>{const pa=(a.type==='devoir_rendre'||a.type==='devoir_preparer')?(a.echeance||'9999'):'9999'; const pb=(b.type==='devoir_rendre'||b.type==='devoir_preparer')?(b.echeance||'9999'):'9999'; return pa.localeCompare(pb)||(b.dateCreation-a.dateCreation)});
-      els.listeItems.innerHTML=''; const tpl=document.getElementById('itemTpl');
+      const tpl=document.getElementById('itemTpl'); const list=els.listeItems; list.innerHTML='';
       items.forEach(it=>{
         const node=tpl.content.cloneNode(true), root=node.querySelector('.tile'); root.dataset.id=it.id;
-        const b=badgeFor(it.type); node.querySelector('[data-badge]').replaceWith(b);
+        node.querySelector('[data-badge]').replaceWith(badgeFor(it.type));
         node.querySelector('[data-matiere]').textContent=it.matiere;
         node.querySelector('[data-info]').textContent=infoFor(it);
         node.querySelector('[data-titre]').textContent=it.titre;
         node.querySelector('[data-desc]').textContent=it.description||'';
         node.querySelector('[data-bar]').style.width=percentFor(it)+'%';
-        node.querySelector('[data-edit]').addEventListener('click',()=>startEdit(it));
-        node.querySelector('[data-done]').addEventListener('click',()=>{updateItem(it.id,{etat:'termine',progress:100}); refreshAll();});
-        node.querySelector('[data-delete]').addEventListener('click',()=>{if(confirm('Supprimer ?')){deleteItem(it.id); refreshAll();}});
+        node.querySelector('[data-edit]').onclick=()=>startEdit(it);
+        node.querySelector('[data-done]').onclick=()=>{updateItem(it.id,{etat:'termine',progress:100}); refreshAll();};
+        node.querySelector('[data-delete]').onclick=()=>{if(confirm('Supprimer ?')){deleteItem(it.id); refreshAll();}};
         const plus=node.querySelector('[data-pluschap]');
-        if(it.type==='lecture'){
-          plus.classList.remove('hidden');
-          plus.addEventListener('click',()=>{const v=Math.min(it.chapitresTotal,(it.chapitresLus||0)+1); updateItem(it.id,{chapitresLus:v}); refreshAll();});
-        }
-        els.listeItems.appendChild(node);
+        if(it.type==='lecture'){ plus.classList.remove('hidden'); plus.onclick=()=>{const v=Math.min(it.chapitresTotal,(it.chapitresLus||0)+1); updateItem(it.id,{chapitresLus:v}); refreshAll();}; }
+        list.appendChild(node);
       });
     }
 
     function startEdit(it){
       editingId=it.id; pendingSessions=null; pendingRepartition=null; document.getElementById('btnSauver').textContent='Mettre à jour';
       els.typeSelect.value=it.type; switchTypeUI();
-      els.matiereSelect.value=it.matiere;
-      els.titreInput.value=it.titre;
-      els.descriptionInput.value=it.description||'';
+      els.matiereSelect.value=it.matiere; els.titreInput.value=it.titre; els.descriptionInput.value=it.description||'';
       if(it.type==='revision'){ els.dateRevision.value=it.baseDate; }
       if(it.type==='devoir_rendre'){ els.echeanceRendre.value=it.echeance; els.prioriteRendre.value=String(it.priorite??1); }
       if(it.type==='devoir_preparer'){ els.echeancePreparer.value=it.echeance; els.dureeTotale.value=it.dureeTotaleEstimee||''; }
-      if(it.type==='lecture'){
-        els.ouvrageTitre.value=it.ouvrage?.titre||''; els.ouvrageAuteur.value=it.ouvrage?.auteur||'';
-        els.chapitresTotal.value=it.chapitresTotal||''; els.echeanceLecture.value=it.echeance||'';
-      }
+      if(it.type==='lecture'){ els.ouvrageTitre.value=it.ouvrage?.titre||''; els.ouvrageAuteur.value=it.ouvrage?.auteur||''; els.chapitresTotal.value=it.chapitresTotal||''; els.echeanceLecture.value=it.echeance||''; }
       document.querySelector('a[data-tab="saisies"]').click();
     }
 
-    /* ===================== PLANNING (5 jours) ===================== */
+    /* ============== Planning 5 jours ============== */
     function renderPlanning(){
       const start=toLocalDate(todayIso());
       const days=Array.from({length:5},(_,i)=>{const d=addDays(start,i);return{date:isoDate(d),label:fmtDateLabel(d),html:[]};});
-
-      // Révisions (jalons)
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
-        r.jalons.forEach((j,idx)=>{
-          const d=isoDate(addDays(base,j));
-          const col=days.find(x=>x.date===d); if(!col) return;
+        r.jalons.forEach((j,idx)=>{ const d=isoDate(addDays(base,j)); const col=days.find(x=>x.date===d); if(!col) return;
           const prog=Math.round(((idx+1)/r.jalons.length)*100);
           col.html.push(`<div class="tile"><span class="badge rev">Révision</span> <strong>${escapeHtml(r.matiere)}</strong><br><em>${escapeHtml(r.titre)}</em><div class="progress"><div class="bar" style="width:${prog}%"></div></div></div>`);
         });
       });
-
-      // À préparer (sessions + échéance)
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
-        (p.sessions||[]).forEach(s=>{
-          const col=days.find(x=>x.date===s.date); if(!col) return;
+        (p.sessions||[]).forEach(s=>{ const col=days.find(x=>x.date===s.date); if(!col) return;
           col.html.push(`<div class="tile"><span class="badge prep">Préparer</span> <strong>${escapeHtml(p.matiere)}</strong> — ${escapeHtml(p.titre)}<br><span class="muted">Session ${s.duree} min</span><div class="progress"><div class="bar" style="width:${s.fait?100:0}%"></div></div></div>`);
         });
         const colE=days.find(x=>x.date===p.echeance); if(colE) colE.html.push(`<div class="tile"><span class="badge prep">Échéance</span> <strong>${escapeHtml(p.matiere)}</strong> — ${escapeHtml(p.titre)}</div>`);
       });
-
-      // À rendre (échéance)
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         const col=days.find(x=>x.date===dv.echeance); if(!col) return;
         col.html.push(`<div class="tile"><span class="badge rendre">À rendre</span> <strong>${escapeHtml(dv.matiere)}</strong> — ${escapeHtml(dv.titre)}<div class="progress"><div class="bar" style="width:${Number(dv.progress||0)}%"></div></div></div>`);
       });
-
-      // Lecture (répartition)
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
-        (le.repartition||[]).forEach(part=>{
-          const col=days.find(x=>x.date===part.date); if(!col) return;
+        (le.repartition||[]).forEach(part=>{ const col=days.find(x=>x.date===part.date); if(!col) return;
           col.html.push(`<div class="tile"><span class="badge lect">Lecture</span> <strong>${escapeHtml(le.ouvrage?.titre||le.titre)}</strong> — ${part.chapitres} chap.</div>`);
         });
       });
-
-      els.planningHeader.innerHTML=''; els.planningRow.innerHTML='';
-      days.forEach(d=>{
-        const th=document.createElement('th'); th.textContent=d.label; els.planningHeader.appendChild(th);
-        const td=document.createElement('td'); td.className='planning-col'; td.innerHTML=d.html.join('')||'<em class="muted">Aucune tâche</em>'; els.planningRow.appendChild(td);
-      });
+      document.getElementById('planningHeader').innerHTML=''; document.getElementById('planningRow').innerHTML='';
+      days.forEach(d=>{ const th=document.createElement('th'); th.textContent=d.label; planningHeader.appendChild(th);
+        const td=document.createElement('td'); td.className='planning-col'; td.innerHTML=d.html.join('')||'<em class="muted">Aucune tâche</em>'; planningRow.appendChild(td); });
     }
 
-    /* ===================== AGENDA ===================== */
+    /* ============== Agenda ============== */
     function renderAgenda(){
       const itemsByDate={};
-
-      // Révisions
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
-        r.jalons.forEach((j,idx)=>{
-          const d=isoDate(addDays(base,j));
-          (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:r.description, prog:Math.round(((idx+1)/r.jalons.length)*100)});
-        });
+        r.jalons.forEach((j,idx)=>{ const d=isoDate(addDays(base,j)); (itemsByDate[d] ||= []).push({type:'revision',matiere:r.matiere,titre:r.titre,desc:r.description,prog:Math.round(((idx+1)/r.jalons.length)*100)}); });
       });
-      // Préparer
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
-        (p.sessions||[]).forEach(s=>{ (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
-        (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
+        (p.sessions||[]).forEach(s=>{ (itemsByDate[s.date] ||= []).push({type:'devoir_preparer',matiere:p.matiere,titre:p.titre,desc:`Session ${s.duree} min`,prog:s.fait?100:0}); });
+        (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer',matiere:p.matiere,titre:p.titre,desc:'Échéance',prog:percentFor(p)});
       });
-      // Rendre
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
-        (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
+        (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre',matiere:dv.matiere,titre:dv.titre,desc:'À rendre',prog:Number(dv.progress||0)});
       });
-      // Lecture
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
-        (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres} chap.`, prog: percentFor(le)}); });
+        (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture',matiere:le.matiere,titre:le.ouvrage?.titre||le.titre,desc:`${part.chapitres} chap.`,prog:percentFor(le)}); });
       });
 
-      const q=els.rechercheAgenda.value.trim().toLowerCase();
-      const fm=els.filtreMatiere.value, ft=els.filtreType.value;
+      const q=document.getElementById('rechercheAgenda').value.trim().toLowerCase();
+      const fm=document.getElementById('filtreMatiere').value, ft=document.getElementById('filtreType').value;
 
       const dates=Object.keys(itemsByDate).sort();
-      els.agendaContent.innerHTML='';
+      const cont=document.getElementById('agendaContent'); cont.innerHTML='';
       dates.forEach((d,i)=>{
         let list=itemsByDate[d];
         if(fm) list=list.filter(x=>x.matiere===fm);
         if(ft) list=list.filter(x=>x.type===ft);
         if(q) list=list.filter(x=>[x.matiere,x.titre,x.desc].join(' ').toLowerCase().includes(q));
         if(!list.length) return;
-        const wrap=document.createElement('div');
-        wrap.dataset.date=d;
-        wrap.style.background=i%2? '#0e1526' : '#0e1322';
-        wrap.style.padding='10px'; wrap.style.marginBottom='8px';
+        const wrap=document.createElement('div'); wrap.dataset.date=d; wrap.style.background=i%2?'#0e1526':'#0e1322'; wrap.style.padding='10px'; wrap.style.marginBottom='8px';
         wrap.innerHTML=`<h4 style="margin:.25rem 0">${fmtDateLabel(toLocalDate(d))}</h4>`;
         list.forEach(p=>{
           const tile=document.createElement('div'); tile.className='tile';
-          const b=badgeFor(p.type).outerHTML;
-          tile.innerHTML=`${b} <strong>${escapeHtml(p.matiere)}</strong><br><em>${escapeHtml(p.titre)}</em><br><span class="muted">${escapeHtml(p.desc||'')}</span><div class="progress"><div class="bar" style="width:${p.prog||0}%"></div></div>`;
+          const tlabel=p.type==='revision'?'Révision':p.type==='devoir_rendre'?'À rendre':p.type==='devoir_preparer'?'À préparer':'Lecture';
+          const cls=p.type==='revision'?'rev':p.type==='devoir_rendre'?'rendre':p.type==='devoir_preparer'?'prep':'lect';
+          tile.innerHTML=`<span class="badge ${cls}">${tlabel}</span> <strong>${escapeHtml(p.matiere)}</strong><br><em>${escapeHtml(p.titre)}</em><br><span class="muted">${escapeHtml(p.desc||'')}</span><div class="progress"><div class="bar" style="width:${p.prog||0}%"></div></div>`;
           wrap.appendChild(tile);
         });
-        els.agendaContent.appendChild(wrap);
+        cont.appendChild(wrap);
       });
     }
+    document.getElementById('btnAujourdHui').onclick=()=>{ document.querySelector(`#agendaContent [data-date="${todayIso()}"]`)?.scrollIntoView({behavior:'smooth'}); };
+    document.getElementById('rechercheAgenda').oninput=renderAgenda;
+    document.getElementById('filtreMatiere').onchange=renderAgenda;
+    document.getElementById('filtreType').onchange=renderAgenda;
 
-    document.getElementById('btnAujourdHui').addEventListener('click',()=>{
-      const today=todayIso(); els.agendaContent.querySelector(`[data-date="${today}"]`)?.scrollIntoView({behavior:'smooth',block:'start'});
-    });
-    els.rechercheAgenda.addEventListener('input',renderAgenda);
-    els.filtreMatiere.addEventListener('change',renderAgenda);
-    els.filtreType.addEventListener('change',renderAgenda);
-
-    /* ===================== EXPORT / IMPORT ===================== */
-    document.getElementById('btnExporter').addEventListener('click',()=>{
+    /* ============== Export / Import ============== */
+    document.getElementById('btnExporter').onclick=()=>{
       const blob=new Blob([JSON.stringify({matieres:store.matieres,items:store.items},null,2)],{type:'application/json'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download=`planning-v3-${todayIso()}.json`; a.click(); URL.revokeObjectURL(url);
-    });
-    document.getElementById('importInput').addEventListener('change',e=>{
+      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`planning-v3-${todayIso()}.json`; a.click(); URL.revokeObjectURL(url);
+    };
+    document.getElementById('importInput').onchange=e=>{
       const file=e.target.files?.[0]; if(!file) return;
-      const reader=new FileReader();
-      reader.onload=()=>{
-        try{
-          const data=JSON.parse(reader.result);
+      const reader=new FileReader(); reader.onload=()=>{
+        try{ const data=JSON.parse(reader.result);
           if(Array.isArray(data.matieres)) store.matieres=data.matieres;
           if(Array.isArray(data.items)) store.items=data.items.map(x=>x.id?x:{...x,id:crypto.randomUUID()});
           renderMatieres(); refreshAll(); alert('Import effectué.');
-        }catch(err){ alert('Fichier invalide.'); }
-      };
-      reader.readAsText(file);
-    });
+        }catch{ alert('Fichier invalide.'); }
+      }; reader.readAsText(file);
+    };
 
-    /* ===================== INITIALISATION ===================== */
+    /* ============== Init ============== */
     function refreshAll(){ renderItems(); renderPlanning(); renderAgenda(); renderMatieres(); }
     renderMatieres(); switchTypeUI(); refreshAll();
 
-    /* ===================== AUTH & SYNC SUPABASE ===================== */
+    /* ============== AUTH & SYNC SUPABASE ============== */
     const btnLogin=document.getElementById('btnLogin');
     const btnLoginCode=document.getElementById('btnLoginCode');
+    const btnLoginGoogle=document.getElementById('btnLoginGoogle');
+    const btnSignup=document.getElementById('btnSignup');
+    const btnLoginPwd=document.getElementById('btnLoginPwd');
     const btnLogout=document.getElementById('btnLogout');
-    let mode='local'; // 'local' | 'cloud'
+    let mode='local';
 
-    // Magic link (redir vers ton domaine Vercel)
-    btnLogin?.addEventListener('click', async ()=>{
-      const email=prompt("Entre ton email pour recevoir un lien de connexion :");
-      if(!email) return;
-      const { error } = await window.sb.auth.signInWithOtp({
-        email,
-        options:{ emailRedirectTo: REDIRECT_URL, shouldCreateUser: true }
-      });
+    // Magic link
+    btnLogin.onclick=async ()=>{
+      const email=prompt("Entre ton email pour recevoir un lien de connexion :"); if(!email) return;
+      const { error } = await window.sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: REDIRECT_URL, shouldCreateUser:true }});
       if(error) return alert("Erreur: " + error.message);
       alert("Vérifie ta boîte mail et clique sur le lien depuis CET appareil.");
-    });
+    };
 
-    // Connexion par code (OTP)
-    btnLoginCode?.addEventListener('click', async ()=>{
-      const email = prompt("Ton email :");
-      if(!email) return;
-
-      // Étape 1 : envoi du code par email
-      const { error } = await window.sb.auth.signInWithOtp({
-        email,
-        options:{ shouldCreateUser: true }
-      });
-      if (error) return alert("Erreur envoi code: " + error.message);
-
-      // Étape 2 : saisie du code reçu
-      const token = prompt("Entre le code à 6 chiffres reçu par email :");
-      if (!token) return;
-
-      const { error: e2 } = await window.sb.auth.verifyOtp({
-        email,
-        token,
-        type: 'email'
-      });
-      if (e2) return alert("Erreur vérification code: " + e2.message);
+    // OTP
+    btnLoginCode.onclick=async ()=>{
+      const email=prompt("Ton email :"); if(!email) return;
+      const { error } = await window.sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true }});
+      if(error) return alert("Erreur envoi code: " + error.message);
+      const token=prompt("Entre le code à 6 chiffres reçu par email :"); if(!token) return;
+      const { error:e2 } = await window.sb.auth.verifyOtp({ email, token, type:'email' });
+      if(e2) return alert("Erreur vérification code: " + e2.message);
       alert("Connexion réussie !");
-    });
+    };
 
-    // Déconnexion
-    btnLogout?.addEventListener('click', async ()=>{
+    // Google OAuth
+    btnLoginGoogle.onclick=async ()=>{
+      try{
+        await window.sb.auth.signInWithOAuth({
+          provider:'google',
+          options:{ redirectTo: REDIRECT_URL, queryParams:{ access_type:'offline', prompt:'consent' } }
+        });
+      }catch(e){ alert('Erreur Google OAuth: ' + e.message); }
+    };
+
+    // Sign up email+password
+    btnSignup.onclick=async ()=>{
+      const email=prompt("Email :"); if(!email) return;
+      const password=prompt("Mot de passe (≥ 6 caractères) :"); if(!password) return;
+      const { error } = await window.sb.auth.signUp({ email, password });
+      if(error) return alert("Erreur inscription: " + error.message);
+      alert("Compte créé. Selon la configuration, un email de confirmation peut être requis.");
+    };
+
+    // Login email+password
+    btnLoginPwd.onclick=async ()=>{
+      const email=prompt("Email :"); if(!email) return;
+      const password=prompt("Mot de passe :"); if(!password) return;
+      const { error } = await window.sb.auth.signInWithPassword({ email, password });
+      if(error) return alert("Erreur connexion: " + error.message);
+      alert("Connexion réussie !");
+    };
+
+    // Logout
+    btnLogout.onclick=async ()=>{
       await window.sb.auth.signOut();
       mode='local';
-      btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
+      toggleAuthButtons(false);
       alert("Déconnecté.");
-    });
+    };
+
+    function toggleAuthButtons(connected){
+      btnLogin.style.display=connected?'none':'';
+      btnLoginCode.style.display=connected?'none':'';
+      btnLoginGoogle.style.display=connected?'none':'';
+      btnSignup.style.display=connected?'none':'';
+      btnLoginPwd.style.display=connected?'none':'';
+      btnLogout.style.display=connected?'':'none';
+    }
 
     async function ensureProfile(user){
       try{ await window.sb.from('profiles').upsert({ id:user.id, email:user.email }).select().single(); }catch(e){ console.warn(e); }
     }
-
     async function maybeMigrateLocalToCloud(user){
       const { data:rows, error } = await window.sb.from('items_v3').select('id').limit(1);
       if(error){ console.error(error); return; }
@@ -630,30 +580,21 @@
       const upserts=localItems.map(it=>({ id:it.id||crypto.randomUUID(), owner_id:user.id, data:it }));
       const { error:e2 } = await window.sb.from('items_v3').upsert(upserts);
       if(e2){ console.error(e2); return; }
-      mode='cloud';
-      alert("Migration effectuée : tes données locales sont maintenant en ligne.");
+      mode='cloud'; alert("Migration effectuée : tes données locales sont maintenant en ligne.");
     }
-
     async function loadFromCloud(user){
       const { data, error } = await window.sb.from('items_v3').select('id,data,updated_at').eq('owner_id',user.id).order('created_at',{ascending:true});
       if(error){ console.error(error); return; }
-      const items=(data||[]).map(r=>({ ...r.data, id:r.data.id||r.id }));
-      store.items=items; mode='cloud'; refreshAll();
+      const items=(data||[]).map(r=>({ ...r.data, id:r.data.id||r.id })); store.items=items; mode='cloud'; refreshAll();
     }
 
     window.sb.auth.onAuthStateChange(async (_ev, session)=>{
       const user=session?.user||null;
-      if(user){
-        btnLogin.style.display='none'; btnLoginCode.style.display='none'; btnLogout.style.display='';
-        await ensureProfile(user);
-        await maybeMigrateLocalToCloud(user);
-        await loadFromCloud(user);
-      }else{
-        mode='local';
-        btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
-      }
+      if(user){ toggleAuthButtons(true); await ensureProfile(user); await maybeMigrateLocalToCloud(user); await loadFromCloud(user); }
+      else    { mode='local'; toggleAuthButtons(false); }
     });
 
+    // Sync hooks
     const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
     addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
     updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
