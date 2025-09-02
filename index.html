@@ -48,12 +48,11 @@
   <!-- Supabase (CDN) + config intégrée : REMPLACE ICI tes 2 valeurs -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    /* ========= REMPLACE ICI ========= */
-    const SUPABASE_URL = "https://smxqtzbqachmzefyjpuj.supabase.co";       /* <-- remplace */
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";                 /* <-- remplace */
-    /* ================================= */
+    // ========= REMPLACE ICI =========
+    const SUPABASE_URL = "https://XXXXXXXX.supabase.co";       // <-- remplace
+    const SUPABASE_ANON_KEY = "eyJhbGciOi...";                 // <-- remplace
+    // ================================
     window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const REDIRECT_URL = "https://planning-revisions.vercel.app"; /* redirection forcée */
   </script>
 </head>
 <body>
@@ -67,7 +66,6 @@
       <!-- Boutons Auth -->
       <div style="margin-left:auto; display:flex; gap:.5rem">
         <button id="btnLogin" class="secondary" type="button">Se connecter</button>
-        <button id="btnLoginCode" class="secondary" type="button">Se connecter (code)</button>
         <button id="btnLogout" class="secondary" type="button" style="display:none">Se déconnecter</button>
       </div>
     </nav>
@@ -230,7 +228,7 @@
       set items(v){localStorage.setItem('items_v3',JSON.stringify(v))}
     };
 
-    // Migration éventuelle depuis anciens formats
+    // Migration éventuelle depuis anciens formats (si tu venais d'une v2 locale)
     (function migrate(){
       if(!localStorage.getItem('items_v3')){
         const revs=JSON.parse(localStorage.getItem('revisions_v2'))||JSON.parse(localStorage.getItem('revisions'))||[];
@@ -569,52 +567,24 @@
 
     /* ===================== AUTH & SYNC SUPABASE ===================== */
     const btnLogin=document.getElementById('btnLogin');
-    const btnLoginCode=document.getElementById('btnLoginCode');
     const btnLogout=document.getElementById('btnLogout');
     let mode='local'; // 'local' | 'cloud'
 
-    // Magic link (redir vers ton domaine Vercel)
     btnLogin?.addEventListener('click', async ()=>{
       const email=prompt("Entre ton email pour recevoir un lien de connexion :");
       if(!email) return;
       const { error } = await window.sb.auth.signInWithOtp({
         email,
-        options:{ emailRedirectTo: REDIRECT_URL, shouldCreateUser: true }
+        options:{ emailRedirectTo: window.location.origin }
       });
       if(error) return alert("Erreur: " + error.message);
-      alert("Vérifie ta boîte mail et clique sur le lien depuis CET appareil.");
+      alert("Vérifie ta boîte mail et clique sur le lien.");
     });
 
-    // Connexion par code (OTP)
-    btnLoginCode?.addEventListener('click', async ()=>{
-      const email = prompt("Ton email :");
-      if(!email) return;
-
-      // Étape 1 : envoi du code par email
-      const { error } = await window.sb.auth.signInWithOtp({
-        email,
-        options:{ shouldCreateUser: true }
-      });
-      if (error) return alert("Erreur envoi code: " + error.message);
-
-      // Étape 2 : saisie du code reçu
-      const token = prompt("Entre le code à 6 chiffres reçu par email :");
-      if (!token) return;
-
-      const { error: e2 } = await window.sb.auth.verifyOtp({
-        email,
-        token,
-        type: 'email'
-      });
-      if (e2) return alert("Erreur vérification code: " + e2.message);
-      alert("Connexion réussie !");
-    });
-
-    // Déconnexion
     btnLogout?.addEventListener('click', async ()=>{
       await window.sb.auth.signOut();
       mode='local';
-      btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
+      btnLogin.style.display=''; btnLogout.style.display='none';
       alert("Déconnecté.");
     });
 
@@ -644,13 +614,13 @@
     window.sb.auth.onAuthStateChange(async (_ev, session)=>{
       const user=session?.user||null;
       if(user){
-        btnLogin.style.display='none'; btnLoginCode.style.display='none'; btnLogout.style.display='';
+        btnLogin.style.display='none'; btnLogout.style.display='';
         await ensureProfile(user);
         await maybeMigrateLocalToCloud(user);
         await loadFromCloud(user);
       }else{
         mode='local';
-        btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
+        btnLogin.style.display=''; btnLogout.style.display='none';
       }
     });
 
