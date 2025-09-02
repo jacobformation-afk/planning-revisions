@@ -238,7 +238,10 @@
     const todayIso = () => isoDate(new Date());
 
     // ===== XSS minimal =====
-    const escapeHtml = (str) => (str||'').replace(/[&<>\"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\\'':'&#39;'}[s]));
+    const escapeHtml = (str = '') =>
+  str.replace(/[&<>"']/g, ch => (
+    {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch]
+  ));
 
     // ===== Stockage (v3) =====
     const store = {
