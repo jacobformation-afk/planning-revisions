@@ -60,6 +60,12 @@
     .muted{color:var(--muted)}
     .hidden{display:none}
   </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+  window.sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
+  
 </head>
 <body>
   <header>
@@ -69,6 +75,9 @@
       <a href="#" data-tab="planning">Planning à 5 jours</a>
       <a href="#" data-tab="agenda">Agenda</a>
       <a href="#" data-tab="matieres">Matières</a>
+      <button id="btnLogin" class="secondary" style="margin-left:auto">Se connecter</button>
+      <button id="btnLogout" class="secondary" style="display:none">Se déconnecter</button>
+
     </nav>
   </header>
 
@@ -1391,6 +1400,144 @@
     // ===== Initialisation =====
     function refreshAll(){ renderItems(); renderPlanning(); renderAgenda(); renderMatieres(); }
     renderMatieres(); switchTypeUI(); refreshAll();
+
+    /* =====================  AUTH & SYNC SUPABASE  ===================== */
+
+// Références des boutons
+const btnLogin = document.getElementById('btnLogin');
+const btnLogout = document.getElementById('btnLogout');
+
+// Mode de stockage courant
+let mode = 'local'; // 'local' (par défaut) ou 'cloud'
+
+// 1) Connexion par "magic link" (email)
+btnLogin?.addEventListener('click', async () => {
+  const email = prompt("Entre ton email pour recevoir un lien de connexion :");
+  if(!email) return;
+  const { error } = await window.sb.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: window.location.origin // revient sur ton site après clic
+    }
+  });
+  if(error) return alert("Erreur: " + error.message);
+  alert("Vérifie ta boîte mail et clique sur le lien.");
+});
+
+// 2) Déconnexion
+btnLogout?.addEventListener('click', async () => {
+  await window.sb.auth.signOut();
+  mode = 'local';
+  btnLogin.style.display = '';
+  btnLogout.style.display = 'none';
+  alert("Déconnecté.");
+});
+
+// 3) Création auto du profil (backup si le trigger n'a pas encore tourné)
+async function ensureProfile(user){
+  try {
+    await window.sb.from('profiles').upsert({ id: user.id, email: user.email }).select().single();
+  } catch(e) { console.warn(e); }
+}
+
+// 4) Migration locale -> cloud (une seule fois si cloud vide)
+async function maybeMigrateLocalToCloud(user){
+  const { data: rows, error } = await window.sb.from('items_v3').select('id').limit(1);
+  if(error){ console.error(error); return; }
+  if(rows && rows.length) return; // déjà des données cloud
+
+  const localItems = store.items || [];
+  if(!localItems.length) return;
+
+  const upserts = localItems.map(it => ({
+    id: it.id || crypto.randomUUID(),
+    owner_id: user.id,
+    data: it
+  }));
+
+  const { error: e2 } = await window.sb.from('items_v3').upsert(upserts);
+  if(e2){ console.error(e2); return; }
+  mode = 'cloud';
+  alert("Migration effectuée : tes données locales sont maintenant sauvegardées en ligne.");
+}
+
+// 5) Charger les données cloud (et écraser local pour garder un cache)
+async function loadFromCloud(user){
+  const { data, error } = await window.sb
+    .from('items_v3')
+    .select('id,data,updated_at')
+    .eq('owner_id', user.id)
+    .order('created_at', { ascending: true });
+  if(error){ console.error(error); return; }
+
+  const items = (data||[]).map(r => ({ ...r.data, id: r.data.id || r.id }));
+  store.items = items;    // on maintient aussi un cache local
+  mode = 'cloud';
+  refreshAll();
+}
+
+// 6) Sur changement d’état d’authentification
+window.sb.auth.onAuthStateChange(async (_ev, session) => {
+  const user = session?.user || null;
+  if (user) {
+    btnLogin.style.display = 'none';
+    btnLogout.style.display = '';
+    await ensureProfile(user);
+    await maybeMigrateLocalToCloud(user);
+    await loadFromCloud(user);
+  } else {
+    mode = 'local';
+    btnLogin.style.display = '';
+    btnLogout.style.display = 'none';
+    // on laisse localStorage tel quel
+  }
+});
+
+// 7) Hooker les opérations locales pour répliquer en cloud si connecté
+const _addItem = addItem;
+const _updateItem = updateItem;
+const _deleteItem = deleteItem;
+
+addItem = (obj) => {
+  _addItem(obj);
+  if(mode==='cloud') upsertCloud([obj]);
+};
+
+updateItem = (id, patch) => {
+  const before = store.items.find(i=>i.id===id);
+  _updateItem(id, patch);
+  if(mode==='cloud'){
+    const after = store.items.find(i=>i.id===id);
+    if(after) upsertCloud([after]);
+  }
+};
+
+deleteItem = (id) => {
+  const existing = store.items.find(i=>i.id===id);
+  _deleteItem(id);
+  if(mode==='cloud' && existing) deleteCloud(id);
+};
+
+// 8) Fonctions d'écriture cloud
+async function upsertCloud(items){
+  const { data: { user } } = await window.sb.auth.getUser();
+  if(!user) return;
+  const rows = items.map(i => ({
+    id: i.id || crypto.randomUUID(),
+    owner_id: user.id,
+    data: i,
+    updated_at: new Date().toISOString()
+  }));
+  const { error } = await window.sb.from('items_v3').upsert(rows);
+  if(error) console.error(error);
+}
+
+async function deleteCloud(id){
+  const { error } = await window.sb.from('items_v3').delete().eq('id', id);
+  if(error) console.error(error);
+}
+
+    
   </script>
 </body>
 </html>
