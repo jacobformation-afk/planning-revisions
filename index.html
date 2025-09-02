@@ -1,91 +1,70 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full" data-app-version="4.0">
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark light" />
-  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <title>Planning de Révisions — v4</title>
+  <title>Planning de Révisions — v3 (cloud ready)</title>
   <style>
-    /* ===== Design tokens ===== */
     :root{
-      --bg: #0b1220; --bg-2:#0d1424; --bg-3:#0f1628;
-      --card:#121a2b; --elev: rgba(0,0,0,.25);
-      --muted:#a6b0c3; --text:#e9eef7; --text-weak:#cfe2ff;
-      --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
-      --border:#1e293b; --border-2:#243349;
-      --focus:#60a5fa;
-    }
-    @media (prefers-color-scheme: light) {
-      :root{ --bg:#f6f7fb; --bg-2:#f9faff; --bg-3:#ffffff; --card:#ffffff; --text:#0e1220; --text-weak:#334155; --border:#e2e8f0; --border-2:#e5e7eb; --elev: rgba(0,0,0,.06); }
+      --bg:#0b1220; --card:#121a2b; --muted:#a6b0c3; --text:#e9eef7; --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";margin:0;color:var(--text);background:linear-gradient(180deg,var(--bg),var(--bg-2) 35%,var(--bg-3));}
-
-    /* ===== Accessibility & motion ===== */
-    :focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:10px}
-    @media (prefers-reduced-motion: reduce){ *{animation-duration:0.01ms!important; animation-iteration-count:1!important; transition-duration:0.01ms!important; scroll-behavior:auto!important} }
-
-    header{position:sticky;top:0;z-index:20;background:color-mix(in oklab, var(--bg) 80%, transparent);backdrop-filter:saturate(1.1) blur(8px);border-bottom:1px solid var(--border)}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";margin:0;color:var(--text);background:linear-gradient(180deg,#0b1220,#0d1424 35%,#0f1628)}
+    header{position:sticky;top:0;z-index:20;background:rgba(11,18,32,.75);backdrop-filter:blur(8px);border-bottom:1px solid #1f2937}
     nav{display:flex;gap:.5rem;align-items:center;max-width:1100px;margin:0 auto;padding:.75rem 1rem}
-    nav a, nav button{color:var(--text-weak);text-decoration:none;font-weight:600;padding:.5rem .75rem;border-radius:12px;border:1px solid var(--border-2);background:color-mix(in oklab, var(--card) 80%, transparent);cursor:pointer}
-    nav a[aria-current="page"],nav a:hover,nav button:hover{background:color-mix(in oklab, var(--card) 100%, transparent)}
+    nav a, nav button{color:#cfe2ff;text-decoration:none;font-weight:600;padding:.5rem .75rem;border-radius:12px;border:1px solid #223352;background:#1b2942;cursor:pointer}
+    nav a[aria-current="page"],nav a:hover,nav button:hover{background:#223352}
     main{max-width:1100px;margin:0 auto;padding:1rem}
     .tab{display:none}.tab.active{display:block}
-    .grid{display:grid;gap:1rem}
-    @media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem;box-shadow:0 10px 30px var(--elev)}
-    h1,h2,h3{margin:.25rem 0 1rem}
+    .grid{display:grid;gap:1rem}@media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
+    .card{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h2{margin:.25rem 0 1rem}
     iframe{border:0;width:100%;border-radius:12px}
-    input,select,textarea,button{width:100%;padding:.7rem .8rem;border-radius:12px;border:1px solid var(--border-2);background:var(--bg-3);color:inherit}
+    input,select,textarea,button{width:100%;padding:.7rem .8rem;border-radius:12px;border:1px solid #25364f;background:#0f172a;color:var(--text)}
     textarea{min-height:90px}
     button{cursor:pointer;background:#1b8f3f;border:1px solid #1e9a45;font-weight:700}
-    button.secondary{background:color-mix(in oklab, var(--card) 100%, transparent);border-color:var(--border-2)}
+    button.secondary{background:#1b2942;border-color:#223352}
     button.danger{background:#7a1f1b;border-color:#8a241f}
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1 1 220px}
     .list{max-height:420px;overflow:auto}
-    .pill{display:inline-flex;align-items:center;gap:.5ch;background:color-mix(in oklab, var(--card) 80%, transparent);border:1px solid var(--border-2);border-radius:999px;padding:.2rem .6rem;font-size:.85rem;color:var(--text-weak)}
+    .pill{display:inline-flex;align-items:center;gap:.5ch;background:#11213a;border:1px solid #223352;border-radius:999px;padding:.2rem .6rem;font-size:.85rem;color:#cfe2ff}
     .badge{display:inline-flex;align-items:center;gap:.4ch;border-radius:999px;padding:.1rem .5rem;font-weight:700;font-size:.75rem}
     .badge.rev{background:#10361f;border:1px solid #174b29;color:#b9f0c3}
     .badge.rendre{background:#3a1412;border:1px solid #4e1a17;color:#ffcdc7}
     .badge.prep{background:#102247;border:1px solid #183066;color:#cfe2ff}
     .badge.lect{background:#241451;border:1px solid #2e1a69;color:#e6d9ff}
-    .tile{border:1px solid var(--border-2);background:var(--bg-3);border-radius:12px;padding:.75rem;margin:.5rem 0}
-    .progress{background:color-mix(in oklab, var(--bg-2) 70%, transparent);border-radius:999px;overflow:hidden;height:10px;margin-top:6px}
+    .tile{border:1px solid #243349;background:#0f172a;border-radius:12px;padding:.75rem;margin:.5rem 0}
+    .progress{background:#1f2a3d;border-radius:999px;overflow:hidden;height:10px;margin-top:6px}
     .bar{background:var(--primary);height:100%;transition:width .3s ease}
     .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
     .planning-table{width:100%;border-collapse:separate;border-spacing:0 12px}
     .planning-table th,.planning-table td{vertical-align:top;text-align:left}
-    .planning-table th{font-size:.95rem;color:var(--text-weak);padding:.25rem .5rem}
-    .planning-col{background:var(--bg-3);border:1px solid var(--border-2);border-radius:12px;padding:.75rem}
+    .planning-table th{font-size:.95rem;color:#cfe2ff;padding:.25rem .5rem}
+    .planning-col{background:#0f172a;border:1px solid #243349;border-radius:12px;padding:.75rem}
     .muted{color:var(--muted)}
     .hidden{display:none}
-
-    /* Toasts */
-    #toasts{position:fixed;inset:auto 1rem 1rem 1rem;display:grid;gap:.5rem;z-index:50}
-    .toast{background:var(--card);border:1px solid var(--border);padding:.75rem 1rem;border-radius:10px;box-shadow:0 10px 20px var(--elev)}
-
-    /* Dialog */
-    dialog{border:1px solid var(--border);background:var(--card);color:inherit;border-radius:12px;padding:0;max-width:min(480px, 95vw)}
-    dialog::backdrop{background:rgba(0,0,0,.5)}
-    .dlg-head{padding:1rem;border-bottom:1px solid var(--border)}
-    .dlg-body{padding:1rem}
-    .dlg-actions{display:flex;gap:.5rem;justify-content:flex-end;padding:1rem;border-top:1px solid var(--border)}
-
-    /* Better focus on actionable controls inside list */
-    .tile button{width:auto}
   </style>
+
+  <!-- Supabase (CDN) + config intégrée : REMPLACE ICI tes 2 valeurs -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    /* ========= REMPLACE ICI ========= */
+    const SUPABASE_URL = "https://XXXXXXXX.supabase.co";       /* <-- remplace */
+    const SUPABASE_ANON_KEY = "eyJhbGciOi...";                 /* <-- remplace */
+    /* ================================= */
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const REDIRECT_URL = "https://planning-revisions.vercel.app"; /* redirection forcée */
+  </script>
 </head>
 <body>
   <header>
     <nav aria-label="Onglets">
-      <a href="#accueil" data-tab="accueil">Accueil</a>
-      <a href="#saisies" data-tab="saisies">Saisies du jour</a>
-      <a href="#planning" data-tab="planning">Planning à 5 jours</a>
-      <a href="#agenda" data-tab="agenda">Agenda</a>
-      <a href="#matieres" data-tab="matieres">Matières</a>
+      <a href="#" data-tab="accueil" aria-current="page">Accueil</a>
+      <a href="#" data-tab="saisies">Saisies du jour</a>
+      <a href="#" data-tab="planning">Planning à 5 jours</a>
+      <a href="#" data-tab="agenda">Agenda</a>
+      <a href="#" data-tab="matieres">Matières</a>
+      <!-- Boutons Auth -->
       <div style="margin-left:auto; display:flex; gap:.5rem">
         <button id="btnLogin" class="secondary" type="button">Se connecter</button>
         <button id="btnLoginCode" class="secondary" type="button">Se connecter (code)</button>
@@ -95,12 +74,11 @@
   </header>
 
   <main>
-    <h1 class="hidden">Planning de révisions</h1>
     <!-- ACCUEIL -->
-    <section class="tab" id="accueil" role="tabpanel" aria-labelledby="tab-accueil">
+    <section class="tab active" id="accueil">
       <div class="grid">
         <div class="card">
-          <h2>Bonjour <span id="username">Octave</span></h2>
+          <h2>Bonjour Octave</h2>
           <p class="muted">Bienvenue — musique du jour.</p>
           <h3>🎵 Musique</h3>
           <iframe title="Lecteur Deezer" scrolling="no" allowtransparency="true"
@@ -111,38 +89,31 @@
     </section>
 
     <!-- SAISIES -->
-    <section class="tab" id="saisies" role="tabpanel" aria-labelledby="tab-saisies">
+    <section class="tab" id="saisies">
       <div class="card">
         <h2>Saisies du jour</h2>
-        <div class="row" role="group" aria-label="Type et matière">
-          <label class="hidden" for="typeSelect">Type</label>
+        <div class="row">
           <select id="typeSelect" aria-label="Type">
             <option value="revision">Révision</option>
             <option value="devoir_rendre">Devoir à rendre</option>
             <option value="devoir_preparer">Devoir à préparer</option>
             <option value="lecture">Lecture</option>
           </select>
-          <label class="hidden" for="matiereSelect">Matière</label>
           <select id="matiereSelect" aria-label="Matière"></select>
-          <label class="hidden" for="titreInput">Titre</label>
           <input id="titreInput" placeholder="Titre (ex. DM fonctions / Lecture Candide)" />
         </div>
         <div class="row">
-          <label class="hidden" for="descriptionInput">Description</label>
           <textarea id="descriptionInput" placeholder="Description / consignes / notes..."></textarea>
         </div>
 
         <!-- Spécifiques par type -->
         <div id="formRevision" class="row">
-          <label class="hidden" for="dateRevision">Date de révision</label>
           <input id="dateRevision" type="date" aria-label="Date de révision" />
-          <div class="pill" aria-hidden="true">Jalons: 0,1,3,7,15,30 jours</div>
+          <div class="pill">Jalons: 0,1,3,7,15,30 jours</div>
         </div>
 
         <div id="formRendre" class="row hidden">
-          <label class="hidden" for="echeanceRendre">Échéance</label>
           <input id="echeanceRendre" type="date" aria-label="Échéance" />
-          <label class="hidden" for="prioriteRendre">Priorité</label>
           <select id="prioriteRendre">
             <option value="1">Priorité normale</option>
             <option value="2">Haute</option>
@@ -151,26 +122,20 @@
         </div>
 
         <div id="formPreparer" class="row hidden">
-          <label class="hidden" for="echeancePreparer">Échéance</label>
           <input id="echeancePreparer" type="date" aria-label="Échéance" />
-          <label class="hidden" for="dureeTotale">Durée totale estimée</label>
           <input id="dureeTotale" type="number" min="15" step="5" placeholder="Durée totale estimée (min)" />
           <button id="btnPlanifierAuto" class="secondary" style="width:auto" type="button">Planifier maintenant</button>
         </div>
 
         <div id="formLecture" class="row hidden">
-          <label class="hidden" for="ouvrageTitre">Titre de l'ouvrage</label>
           <input id="ouvrageTitre" placeholder="Titre de l'ouvrage" />
-          <label class="hidden" for="ouvrageAuteur">Auteur</label>
           <input id="ouvrageAuteur" placeholder="Auteur (optionnel)" />
-          <label class="hidden" for="chapitresTotal">Nombre de chapitres</label>
           <input id="chapitresTotal" type="number" min="1" placeholder="Nombre de chapitres" />
-          <label class="hidden" for="echeanceLecture">Échéance lecture</label>
           <input id="echeanceLecture" type="date" aria-label="Échéance lecture (optionnelle)" />
           <button id="btnRepartirLecture" class="secondary" style="width:auto" type="button">Répartir maintenant</button>
         </div>
 
-        <div class="toolbar" role="group" aria-label="Actions">
+        <div class="toolbar">
           <button id="btnSauver" type="button">Ajouter</button>
           <button class="secondary" id="btnExporter" type="button">Exporter JSON</button>
           <label class="pill" for="importInput">Importer JSON
@@ -178,12 +143,12 @@
           </label>
         </div>
 
-        <div id="listeItems" class="list" role="list"></div>
+        <div id="listeItems" class="list"></div>
       </div>
     </section>
 
     <!-- PLANNING -->
-    <section class="tab" id="planning" role="tabpanel" aria-labelledby="tab-planning">
+    <section class="tab" id="planning">
       <div class="card">
         <h2 style="text-align:center">Planning à 5 jours</h2>
         <table class="planning-table" id="planningTable">
@@ -194,7 +159,7 @@
     </section>
 
     <!-- AGENDA -->
-    <section class="tab" id="agenda" role="tabpanel" aria-labelledby="tab-agenda">
+    <section class="tab" id="agenda">
       <div class="card">
         <h2>Agenda</h2>
         <div class="toolbar">
@@ -208,14 +173,13 @@
             <option value="lecture">Lecture</option>
           </select>
           <button class="secondary" id="btnAujourdHui" type="button">Aller à aujourd'hui</button>
-          <button class="secondary" id="btnICS" type="button" title="Exporter la semaine en .ics">Exporter .ics</button>
         </div>
         <div id="agendaContent" class="list"></div>
       </div>
     </section>
 
     <!-- MATIERES -->
-    <section class="tab" id="matieres" role="tabpanel" aria-labelledby="tab-matieres">
+    <section class="tab" id="matieres">
       <div class="card">
         <h2>Matières</h2>
         <div class="row">
@@ -247,123 +211,104 @@
     </div>
   </template>
 
-  <!-- Dialogs -->
-  <dialog id="dlgLoginEmail" aria-labelledby="dlgLoginTitle">
-    <div class="dlg-head"><h3 id="dlgLoginTitle">Connexion par email</h3></div>
-    <form method="dialog">
-      <div class="dlg-body">
-        <label for="inpEmail" class="hidden">Email</label>
-        <input id="inpEmail" type="email" placeholder="mon@email.fr" autocomplete="email" required />
-        <p class="muted" id="loginHelper">Un lien de connexion vous sera envoyé.</p>
-      </div>
-      <div class="dlg-actions">
-        <button value="cancel" class="secondary" type="submit">Annuler</button>
-        <button id="dlgLoginSend" value="ok" type="submit">Envoyer</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="dlgOtp" aria-labelledby="dlgOtpTitle">
-    <div class="dlg-head"><h3 id="dlgOtpTitle">Code à 6 chiffres</h3></div>
-    <form method="dialog">
-      <div class="dlg-body">
-        <input id="inpOtpEmail" type="email" placeholder="Email" autocomplete="email" required />
-        <input id="inpOtp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required />
-      </div>
-      <div class="dlg-actions">
-        <button value="cancel" class="secondary" type="submit">Annuler</button>
-        <button id="dlgOtpVerify" value="ok" type="submit">Vérifier</button>
-      </div>
-    </form>
-  </dialog>
-
-  <div id="toasts" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- Supabase (CDN) + config: utilisez des variables d'environnement côté build/déploiement. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" integrity="sha384-fakehash" crossorigin="anonymous"></script>
   <script>
-    // ======= Configuration =======
-    // ⚠️ Remplacez ces valeurs au build (ex: via Vite/Next) et ne commitez jamais vos clés en clair.
-    const SUPABASE_URL = window.__SB_URL__ || "";
-    const SUPABASE_ANON_KEY = window.__SB_ANON__ || "";
-    const REDIRECT_URL = (location.origin.match(/vercel\.app$/) ? location.origin : location.origin);
-    const sb = (SUPABASE_URL && SUPABASE_ANON_KEY) ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-    // ======= Utilitaires =======
+    /* ===================== UTILITAIRES ===================== */
     const JALONS=[0,1,3,7,15,30], FR='fr-FR';
-    const fmtDateLabel=d=>new Intl.DateTimeFormat(FR,{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(d);
+    const fmtDateLabel=d=>d.toLocaleDateString(FR,{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
     const toLocalDate=s=>new Date(`${s}T00:00:00`);
     const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
     const isoDate=d=>d.toISOString().slice(0,10);
     const todayIso=()=>isoDate(new Date());
-    // XSS: échappement plus robuste + trim
-    const escapeHtml=(str='')=>String(str).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
-    // Debounce
-    const debounce=(fn,ms=200)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+    // XSS minimal (corrigé)
+    const escapeHtml=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
-    // ======= Store local =======
+    /* ===================== STORE LOCAL ===================== */
     const store={
       get matieres(){return JSON.parse(localStorage.getItem('matieres'))||['Mathématiques','Physique-chimie','Français','Histoire-géographie','Anglais','Espagnol','Enseignement moral et civique','Techno','Enseignement Spécifique','EPS']},
       set matieres(v){localStorage.setItem('matieres',JSON.stringify(v))},
-      get items(){return JSON.parse(localStorage.getItem('items_v4'))||[]},
-      set items(v){localStorage.setItem('items_v4',JSON.stringify(v))}
+      get items(){return JSON.parse(localStorage.getItem('items_v3'))||[]},
+      set items(v){localStorage.setItem('items_v3',JSON.stringify(v))}
     };
 
-    // Migration depuis v3 si présent
+    // Migration éventuelle depuis anciens formats
     (function migrate(){
-      if(!localStorage.getItem('items_v4')){
-        const v3 = JSON.parse(localStorage.getItem('items_v3'))||[];
-        if(v3.length){ localStorage.setItem('items_v4', JSON.stringify(v3)); }
+      if(!localStorage.getItem('items_v3')){
+        const revs=JSON.parse(localStorage.getItem('revisions_v2'))||JSON.parse(localStorage.getItem('revisions'))||[];
+        const mapped=(revs||[]).map(r=>({
+          id:crypto.randomUUID(), type:'revision', matiere:r.matiere,
+          titre:r.contenu?.slice(0,80)||'Révision', description:r.commentaire||'',
+          dateCreation:Date.now(), etat:'a_faire', baseDate:r.date, jalons:[...JALONS]
+        }));
+        if(mapped.length) localStorage.setItem('items_v3',JSON.stringify(mapped));
       }
     })();
 
-    // ======= Éléments =======
-    const qs=id=>document.getElementById(id);
+    /* ===================== ELEMENTS ===================== */
     const els={
-      tabs:[...document.querySelectorAll('nav a[data-tab]')],
-      typeSelect:qs('typeSelect'), matiereSelect:qs('matiereSelect'), titreInput:qs('titreInput'), descriptionInput:qs('descriptionInput'),
-      formRevision:qs('formRevision'), formRendre:qs('formRendre'), formPreparer:qs('formPreparer'), formLecture:qs('formLecture'),
-      dateRevision:qs('dateRevision'), echeanceRendre:qs('echeanceRendre'), prioriteRendre:qs('prioriteRendre'),
-      echeancePreparer:qs('echeancePreparer'), dureeTotale:qs('dureeTotale'), btnPlanifierAuto:qs('btnPlanifierAuto'),
-      ouvrageTitre:qs('ouvrageTitre'), ouvrageAuteur:qs('ouvrageAuteur'), chapitresTotal:qs('chapitresTotal'), echeanceLecture:qs('echeanceLecture'), btnRepartirLecture:qs('btnRepartirLecture'),
-      btnSauver:qs('btnSauver'), listeItems:qs('listeItems'), planningHeader:qs('planningHeader'), planningRow:qs('planningRow'), agendaContent:qs('agendaContent'),
-      rechercheAgenda:qs('rechercheAgenda'), filtreMatiere:qs('filtreMatiere'), filtreType:qs('filtreType'),
-      nouvelleMatiere:qs('nouvelleMatiere'), listeMatieres:qs('listeMatieres'),
-      btnICS:qs('btnICS')
+      tabs:document.querySelectorAll('nav a[data-tab]'),
+      typeSelect:document.getElementById('typeSelect'),
+      matiereSelect:document.getElementById('matiereSelect'),
+      titreInput:document.getElementById('titreInput'),
+      descriptionInput:document.getElementById('descriptionInput'),
+      formRevision:document.getElementById('formRevision'),
+      formRendre:document.getElementById('formRendre'),
+      formPreparer:document.getElementById('formPreparer'),
+      formLecture:document.getElementById('formLecture'),
+      dateRevision:document.getElementById('dateRevision'),
+      echeanceRendre:document.getElementById('echeanceRendre'),
+      prioriteRendre:document.getElementById('prioriteRendre'),
+      echeancePreparer:document.getElementById('echeancePreparer'),
+      dureeTotale:document.getElementById('dureeTotale'),
+      btnPlanifierAuto:document.getElementById('btnPlanifierAuto'),
+      ouvrageTitre:document.getElementById('ouvrageTitre'),
+      ouvrageAuteur:document.getElementById('ouvrageAuteur'),
+      chapitresTotal:document.getElementById('chapitresTotal'),
+      echeanceLecture:document.getElementById('echeanceLecture'),
+      btnRepartirLecture:document.getElementById('btnRepartirLecture'),
+      btnSauver:document.getElementById('btnSauver'),
+      listeItems:document.getElementById('listeItems'),
+      planningHeader:document.getElementById('planningHeader'),
+      planningRow:document.getElementById('planningRow'),
+      agendaContent:document.getElementById('agendaContent'),
+      rechercheAgenda:document.getElementById('rechercheAgenda'),
+      filtreMatiere:document.getElementById('filtreMatiere'),
+      filtreType:document.getElementById('filtreType'),
+      nouvelleMatiere:document.getElementById('nouvelleMatiere'),
+      listeMatieres:document.getElementById('listeMatieres')
     };
 
-    // ======= Tabs avec hash (deep-link + persistance) =======
-    function setActiveTab(id){
-      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.id===id));
-      els.tabs.forEach(a=>a.setAttribute('aria-current', a.dataset.tab===id ? 'page' : 'false'));
-      localStorage.setItem('active_tab', id);
-    }
-    function handleHash(){ const id=(location.hash||'#accueil').slice(1); setActiveTab(id); }
-    addEventListener('hashchange', handleHash);
-    els.tabs.forEach(a=>a.addEventListener('click', e=>{e.preventDefault(); location.hash = a.getAttribute('href'); }));
+    /* ===================== NAV TABS ===================== */
+    document.querySelectorAll('nav a[data-tab]').forEach(a=>a.addEventListener('click',e=>{
+      e.preventDefault();
+      const id=a.getAttribute('data-tab');
+      document.querySelectorAll('nav a[data-tab]').forEach(t=>t.removeAttribute('aria-current'));
+      a.setAttribute('aria-current','page');
+      document.querySelectorAll('.tab').forEach(tab=>tab.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }));
 
-    // ======= Matières UI =======
+    /* ===================== MATIERES UI ===================== */
     function renderMatieres(){
       const ms=[...store.matieres].sort((a,b)=>a.localeCompare(b,'fr'));
-      els.matiereSelect.innerHTML=ms.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
-      els.filtreMatiere.innerHTML=`<option value="">Toutes les matières</option>`+ms.map(m=>`<option>${escapeHtml(m)}</option>`).join('');
+      els.matiereSelect.innerHTML=ms.map(m=>`<option value="${m}">${m}</option>`).join('');
+      els.filtreMatiere.innerHTML=`<option value="">Toutes les matières</option>`+ms.map(m=>`<option>${m}</option>`).join('');
       els.listeMatieres.innerHTML='';
       ms.forEach(m=>{
         const utilisee=store.items.some(r=>r.matiere===m);
         const li=document.createElement('li'); li.innerHTML=`<span class="pill">${escapeHtml(m)}</span>`;
         if(!utilisee){
           const btn=document.createElement('button'); btn.textContent='Supprimer'; btn.className='danger'; btn.style.width='auto';
-          btn.addEventListener('click',()=>{ confirmDialog('Supprimer cette matière ?').then(ok=>{ if(ok){ store.matieres=store.matieres.filter(x=>x!==m); renderMatieres(); showToast('Matière supprimée'); }}); });
+          btn.addEventListener('click',()=>{ if(confirm('Supprimer cette matière ?')){ store.matieres=store.matieres.filter(x=>x!==m); renderMatieres(); }});
           li.append(' ',btn);
         }
         els.listeMatieres.appendChild(li);
       });
     }
-    qs('btnAjouterMatiere').addEventListener('click',()=>{
-      const m=els.nouvelleMatiere.value.trim(); if(m&&!store.matieres.includes(m)){ store.matieres=[...store.matieres,m]; els.nouvelleMatiere.value=''; renderMatieres(); showToast('Matière ajoutée'); }
+    document.getElementById('btnAjouterMatiere').addEventListener('click',()=>{
+      const m=els.nouvelleMatiere.value.trim(); if(m&&!store.matieres.includes(m)){ store.matieres=[...store.matieres,m]; els.nouvelleMatiere.value=''; renderMatieres(); }
     });
 
-    // ======= Items CRUD =======
+    /* ===================== ITEMS (CRUD) ===================== */
     let addItem=obj=>{store.items=[...store.items,obj]};
     let updateItem=(id,patch)=>{store.items=store.items.map(i=>i.id===id?{...i,...patch}:i)};
     let deleteItem=id=>{store.items=store.items.filter(i=>i.id!==id)};
@@ -381,61 +326,61 @@
     let editingId=null, pendingSessions=null, pendingRepartition=null;
 
     function clearForm(){
-      editingId=null; pendingSessions=null; pendingRepartition=null; qs('btnSauver').textContent='Ajouter';
+      editingId=null; pendingSessions=null; pendingRepartition=null; document.getElementById('btnSauver').textContent='Ajouter';
       els.titreInput.value=''; els.descriptionInput.value=''; els.dateRevision.value=todayIso(); els.echeanceRendre.value=todayIso();
       els.echeancePreparer.value=todayIso(); els.dureeTotale.value=''; els.ouvrageTitre.value=''; els.ouvrageAuteur.value='';
       els.chapitresTotal.value=''; els.echeanceLecture.value=''; els.typeSelect.value='revision'; switchTypeUI();
     }
 
-    qs('btnSauver').addEventListener('click',()=>{
+    document.getElementById('btnSauver').addEventListener('click',()=>{
       const type=els.typeSelect.value, matiere=els.matiereSelect.value;
       const titre=els.titreInput.value.trim()||(type==='lecture'?(els.ouvrageTitre.value.trim()||'Lecture'):'Sans titre');
       const description=els.descriptionInput.value.trim();
-      if(!matiere) return showToast('Choisis une matière.', true);
+      if(!matiere) return alert('Choisis une matière.');
       let payload={id:editingId||crypto.randomUUID(),type,matiere,titre,description,dateCreation:Date.now(),etat:'a_faire'};
 
       if(type==='revision'){
-        const baseDate=els.dateRevision.value; if(!baseDate) return showToast('Date requise.', true);
+        const baseDate=els.dateRevision.value; if(!baseDate) return alert('Date requise.');
         payload={...payload,baseDate,jalons:[...JALONS]};
       }
       if(type==='devoir_rendre'){
-        const echeance=els.echeanceRendre.value; if(!echeance) return showToast('Échéance requise.', true);
+        const echeance=els.echeanceRendre.value; if(!echeance) return alert('Échéance requise.');
         payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:0};
       }
       if(type==='devoir_preparer'){
-        const echeance=els.echeancePreparer.value; if(!echeance) return showToast('Échéance requise.', true);
-        const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return showToast('Indique la durée totale estimée.', true);
+        const echeance=els.echeancePreparer.value; if(!echeance) return alert('Échéance requise.');
+        const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.');
         payload={...payload,echeance,dureeTotaleEstimee:dureeTotale,sessions:pendingSessions||[]};
       }
       if(type==='lecture'){
-        const titreO=els.ouvrageTitre.value.trim(); if(!titreO) return showToast("Titre de l'ouvrage requis.", true);
-        const chapTotal=Number(els.chapitresTotal.value||0); if(!chapTotal) return showToast('Nombre de chapitres requis.', true);
+        const titreO=els.ouvrageTitre.value.trim(); if(!titreO) return alert("Titre de l'ouvrage requis.");
+        const chapTotal=Number(els.chapitresTotal.value||0); if(!chapTotal) return alert('Nombre de chapitres requis.');
         const echeance=els.echeanceLecture.value||null;
         payload={...payload,ouvrage:{titre:titreO,auteur:els.ouvrageAuteur.value.trim()||''},chapitresTotal:chapTotal,chapitresLus:0,echeance,repartition:pendingRepartition||[]};
       }
 
       if(editingId) updateItem(editingId,payload); else addItem(payload);
-      clearForm(); refreshAll(); showToast('Enregistré');
+      clearForm(); refreshAll();
     });
 
-    els.btnPlanifierAuto.addEventListener('click',()=>{
+    document.getElementById('btnPlanifierAuto').addEventListener('click',()=>{
       const echeance=els.echeancePreparer.value, dureeTotale=Number(els.dureeTotale.value||0);
-      if(!echeance||!dureeTotale) return showToast('Échéance et durée requises.', true);
+      if(!echeance||!dureeTotale) return alert('Échéance et durée requises.');
       const start=toLocalDate(todayIso()), end=toLocalDate(echeance);
       const days=Math.max(1,Math.ceil((end-start)/86400000)), chunk=30, sessionsCount=Math.max(1,Math.ceil(dureeTotale/chunk));
       const sessions=Array.from({length:sessionsCount},(_,i)=>({date:isoDate(addDays(start,Math.round(i*(days-1)/Math.max(1,sessionsCount-1)))),duree:chunk,fait:false}));
-      if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='devoir_preparer'){updateItem(editingId,{sessions}); refreshAll(); return showToast(`Plan créé: ${sessions.length} sessions de ${chunk} min.`);} }
-      pendingSessions=sessions; showToast(`Plan prêt: ${sessions.length} sessions seront ajoutées à l'enregistrement.`);
+      if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='devoir_preparer'){updateItem(editingId,{sessions}); alert(`Plan créé: ${sessions.length} sessions de ${chunk} min.`); refreshAll(); return;}}
+      pendingSessions=sessions; alert(`Plan prêt: ${sessions.length} sessions seront ajoutées à l'enregistrement.`);
     });
 
-    els.btnRepartirLecture.addEventListener('click',()=>{
+    document.getElementById('btnRepartirLecture').addEventListener('click',()=>{
       const chapTotal=Number(els.chapitresTotal.value||0), echeance=els.echeanceLecture.value;
-      if(!(chapTotal&&echeance)) return showToast('Indique le nombre de chapitres et une échéance.', true);
+      if(!(chapTotal&&echeance)) return alert('Indique le nombre de chapitres et une échéance.');
       const start=toLocalDate(todayIso()), end=toLocalDate(echeance), days=Math.max(1,Math.ceil((end-start)/86400000));
       const base=Math.floor(chapTotal/days), extra=chapTotal%days;
       const repartition=Array.from({length:days},(_,i)=>{const nb=base+(i<extra?1:0);return{date:isoDate(addDays(start,i)),chapitres:nb,fait:false}}).filter(p=>p.chapitres>0);
-      if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='lecture'){updateItem(editingId,{repartition}); refreshAll(); return showToast(`Répartition créée: ${repartition.length} jours.`);} }
-      pendingRepartition=repartition; showToast(`Répartition prête: ${repartition.length} jours seront ajoutés.`);
+      if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='lecture'){updateItem(editingId,{repartition}); alert(`Répartition créée: ${repartition.length} jours.`); refreshAll(); return;}}
+      pendingRepartition=repartition; alert(`Répartition prête: ${repartition.length} jours seront ajoutés à l'enregistrement.`);
     });
 
     function badgeFor(t){const s=document.createElement('span'); s.className='badge '+(t==='revision'?'rev':t==='devoir_rendre'?'rendre':t==='devoir_preparer'?'prep':'lect'); s.textContent=t==='revision'?'Révision':t==='devoir_rendre'?'À rendre':t==='devoir_preparer'?'À préparer':'Lecture'; return s;}
@@ -450,7 +395,8 @@
       if(it.type==='revision') return `Base: ${fmtDateLabel(toLocalDate(it.baseDate))}`;
       if(it.type==='devoir_rendre') return `Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`;
       if(it.type==='devoir_preparer') return `Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`;
-      if(it.type==='lecture'){const p=[`${it.chapitresLus||0}/${it.chapitresTotal} chap.`]; if(it.echeance) p.push(`Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`); return p.join(' — ');} return '';
+      if(it.type==='lecture'){const p=[`${it.chapitresLus||0}/${it.chapitresTotal} chap.`]; if(it.echeance) p.push(`Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`); return p.join(' — ');}
+      return '';
     }
 
     function renderItems(){
@@ -465,8 +411,8 @@
         node.querySelector('[data-desc]').textContent=it.description||'';
         node.querySelector('[data-bar]').style.width=percentFor(it)+'%';
         node.querySelector('[data-edit]').addEventListener('click',()=>startEdit(it));
-        node.querySelector('[data-done]').addEventListener('click',()=>{updateItem(it.id,{etat:'termine',progress:100}); refreshAll(); showToast('Marqué terminé');});
-        node.querySelector('[data-delete]').addEventListener('click',()=>{ confirmDialog('Supprimer ?').then(ok=>{ if(ok){ deleteItem(it.id); refreshAll(); showToast('Supprimé'); } }); });
+        node.querySelector('[data-done]').addEventListener('click',()=>{updateItem(it.id,{etat:'termine',progress:100}); refreshAll();});
+        node.querySelector('[data-delete]').addEventListener('click',()=>{if(confirm('Supprimer ?')){deleteItem(it.id); refreshAll();}});
         const plus=node.querySelector('[data-pluschap]');
         if(it.type==='lecture'){
           plus.classList.remove('hidden');
@@ -477,7 +423,7 @@
     }
 
     function startEdit(it){
-      editingId=it.id; pendingSessions=null; pendingRepartition=null; qs('btnSauver').textContent='Mettre à jour';
+      editingId=it.id; pendingSessions=null; pendingRepartition=null; document.getElementById('btnSauver').textContent='Mettre à jour';
       els.typeSelect.value=it.type; switchTypeUI();
       els.matiereSelect.value=it.matiere;
       els.titreInput.value=it.titre;
@@ -489,10 +435,10 @@
         els.ouvrageTitre.value=it.ouvrage?.titre||''; els.ouvrageAuteur.value=it.ouvrage?.auteur||'';
         els.chapitresTotal.value=it.chapitresTotal||''; els.echeanceLecture.value=it.echeance||'';
       }
-      location.hash = '#saisies';
+      document.querySelector('a[data-tab="saisies"]').click();
     }
 
-    // ======= Planning (5 jours) =======
+    /* ===================== PLANNING (5 jours) ===================== */
     function renderPlanning(){
       const start=toLocalDate(todayIso());
       const days=Array.from({length:5},(_,i)=>{const d=addDays(start,i);return{date:isoDate(d),label:fmtDateLabel(d),html:[]};});
@@ -538,9 +484,11 @@
       });
     }
 
-    // ======= Agenda =======
+    /* ===================== AGENDA ===================== */
     function renderAgenda(){
       const itemsByDate={};
+
+      // Révisions
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
         r.jalons.forEach((j,idx)=>{
@@ -548,13 +496,16 @@
           (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:r.description, prog:Math.round(((idx+1)/r.jalons.length)*100)});
         });
       });
+      // Préparer
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
         (p.sessions||[]).forEach(s=>{ (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
         (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
       });
+      // Rendre
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
       });
+      // Lecture
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
         (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres} chap.`, prog: percentFor(le)}); });
       });
@@ -572,7 +523,7 @@
         if(!list.length) return;
         const wrap=document.createElement('div');
         wrap.dataset.date=d;
-        wrap.style.background=i%2? 'var(--bg-2)' : 'var(--bg)';
+        wrap.style.background=i%2? '#0e1526' : '#0e1322';
         wrap.style.padding='10px'; wrap.style.marginBottom='8px';
         wrap.innerHTML=`<h4 style="margin:.25rem 0">${fmtDateLabel(toLocalDate(d))}</h4>`;
         list.forEach(p=>{
@@ -585,20 +536,20 @@
       });
     }
 
-    qs('btnAujourdHui').addEventListener('click',()=>{
-      const today=todayIso(); els.agendaContent.querySelector(`[\u005bdata-date="${today}"]`)?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.getElementById('btnAujourdHui').addEventListener('click',()=>{
+      const today=todayIso(); els.agendaContent.querySelector(`[data-date="${today}"]`)?.scrollIntoView({behavior:'smooth',block:'start'});
     });
-    els.rechercheAgenda.addEventListener('input', debounce(renderAgenda, 150));
-    els.filtreMatiere.addEventListener('change', renderAgenda);
-    els.filtreType.addEventListener('change', renderAgenda);
+    els.rechercheAgenda.addEventListener('input',renderAgenda);
+    els.filtreMatiere.addEventListener('change',renderAgenda);
+    els.filtreType.addEventListener('change',renderAgenda);
 
-    // ======= Export / Import =======
-    qs('btnExporter').addEventListener('click',()=>{
+    /* ===================== EXPORT / IMPORT ===================== */
+    document.getElementById('btnExporter').addEventListener('click',()=>{
       const blob=new Blob([JSON.stringify({matieres:store.matieres,items:store.items},null,2)],{type:'application/json'});
       const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download=`planning-v4-${todayIso()}.json`; a.click(); URL.revokeObjectURL(url);
+      const a=document.createElement('a'); a.href=url; a.download=`planning-v3-${todayIso()}.json`; a.click(); URL.revokeObjectURL(url);
     });
-    qs('importInput').addEventListener('change',e=>{
+    document.getElementById('importInput').addEventListener('change',e=>{
       const file=e.target.files?.[0]; if(!file) return;
       const reader=new FileReader();
       reader.onload=()=>{
@@ -606,156 +557,118 @@
           const data=JSON.parse(reader.result);
           if(Array.isArray(data.matieres)) store.matieres=data.matieres;
           if(Array.isArray(data.items)) store.items=data.items.map(x=>x.id?x:{...x,id:crypto.randomUUID()});
-          renderMatieres(); refreshAll(); showToast('Import effectué');
-        }catch(err){ showToast('Fichier invalide.', true); }
+          renderMatieres(); refreshAll(); alert('Import effectué.');
+        }catch(err){ alert('Fichier invalide.'); }
       };
       reader.readAsText(file);
     });
 
-    // ======= Export ICS (semaine courante des 5 jours) =======
-    els.btnICS.addEventListener('click',()=>{
-      const start=toLocalDate(todayIso());
-      const items=[];
-      const push=(date, title, desc)=>{ items.push({date, title, desc}); };
-      store.items.forEach(it=>{
-        if(it.type==='revision'){
-          const base=toLocalDate(it.baseDate); JALONS.forEach(j=>{ const d=isoDate(addDays(base,j)); if(d>=isoDate(start) && d<=isoDate(addDays(start,4))) push(d, `Révision ${it.matiere} — ${it.titre}`, it.description||''); });
-        }else if(it.type==='devoir_preparer'){
-          (it.sessions||[]).forEach(s=>{ if(s.date>=isoDate(start) && s.date<=isoDate(addDays(start,4))) push(s.date, `Préparer ${it.matiere} — ${it.titre}`, `Session ${s.duree} min`); });
-          if(it.echeance>=isoDate(start) && it.echeance<=isoDate(addDays(start,4))) push(it.echeance, `Échéance ${it.matiere} — ${it.titre}`, '');
-        }else if(it.type==='devoir_rendre'){
-          if(it.echeance>=isoDate(start) && it.echeance<=isoDate(addDays(start,4))) push(it.echeance, `À rendre ${it.matiere} — ${it.titre}`, '');
-        }else if(it.type==='lecture'){
-          (it.repartition||[]).forEach(p=>{ if(p.date>=isoDate(start) && p.date<=isoDate(addDays(start,4))) push(p.date, `Lecture — ${it.ouvrage?.titre||it.titre}`, `${p.chapitres} chap.`); });
-        }
-      });
-
-      const pad=n=>String(n).padStart(2,'0');
-      const dtstamp = new Date();
-      const icsEvents = items.map(ev=>{
-        const d = toLocalDate(ev.date);
-        const dt = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
-        return `BEGIN:VEVENT\nDTSTAMP:${dtstamp.toISOString().replace(/[-:]/g,'').split('.')[0]}Z\nUID:${crypto.randomUUID()}\nDTSTART;VALUE=DATE:${dt}\nSUMMARY:${ev.title.replace(/\n/g,' ')}\nDESCRIPTION:${(ev.desc||'').replace(/\n/g,' ')}\nEND:VEVENT`;
-      }).join('\n');
-      const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Planning v4//FR\nCALSCALE:GREGORIAN\n${icsEvents}\nEND:VCALENDAR`;
-      const blob = new Blob([ics],{type:'text/calendar'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download=`planning-5jours-${todayIso()}.ics`; a.click(); URL.revokeObjectURL(url);
-    });
-
-    // ======= Initialisation =======
+    /* ===================== INITIALISATION ===================== */
     function refreshAll(){ renderItems(); renderPlanning(); renderAgenda(); renderMatieres(); }
-    switchTypeUI(); refreshAll(); handleHash();
+    renderMatieres(); switchTypeUI(); refreshAll();
 
-    // ======= Auth & Sync Supabase (facultatif si clés absentes) =======
+    /* ===================== AUTH & SYNC SUPABASE ===================== */
     const btnLogin=document.getElementById('btnLogin');
     const btnLoginCode=document.getElementById('btnLoginCode');
     const btnLogout=document.getElementById('btnLogout');
     let mode='local'; // 'local' | 'cloud'
 
-    function toggleAuthButtons(authenticated){
-      btnLogin.style.display = authenticated ? 'none' : '';
-      btnLoginCode.style.display = authenticated ? 'none' : '';
-      btnLogout.style.display = authenticated ? '' : 'none';
+    // Magic link (redir vers ton domaine Vercel)
+    btnLogin?.addEventListener('click', async ()=>{
+      const email=prompt("Entre ton email pour recevoir un lien de connexion :");
+      if(!email) return;
+      const { error } = await window.sb.auth.signInWithOtp({
+        email,
+        options:{ emailRedirectTo: REDIRECT_URL, shouldCreateUser: true }
+      });
+      if(error) return alert("Erreur: " + error.message);
+      alert("Vérifie ta boîte mail et clique sur le lien depuis CET appareil.");
+    });
+
+    // Connexion par code (OTP)
+    btnLoginCode?.addEventListener('click', async ()=>{
+      const email = prompt("Ton email :");
+      if(!email) return;
+
+      // Étape 1 : envoi du code par email
+      const { error } = await window.sb.auth.signInWithOtp({
+        email,
+        options:{ shouldCreateUser: true }
+      });
+      if (error) return alert("Erreur envoi code: " + error.message);
+
+      // Étape 2 : saisie du code reçu
+      const token = prompt("Entre le code à 6 chiffres reçu par email :");
+      if (!token) return;
+
+      const { error: e2 } = await window.sb.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+      if (e2) return alert("Erreur vérification code: " + e2.message);
+      alert("Connexion réussie !");
+    });
+
+    // Déconnexion
+    btnLogout?.addEventListener('click', async ()=>{
+      await window.sb.auth.signOut();
+      mode='local';
+      btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
+      alert("Déconnecté.");
+    });
+
+    async function ensureProfile(user){
+      try{ await window.sb.from('profiles').upsert({ id:user.id, email:user.email }).select().single(); }catch(e){ console.warn(e); }
     }
 
-    // Dialog helpers
-    function confirmDialog(message){
-      return new Promise(res=>{
-        const d=document.createElement('dialog');
-        d.innerHTML=`<div class="dlg-head"><h3>Confirmation</h3></div><div class="dlg-body"><p>${escapeHtml(message)}</p></div><div class="dlg-actions"><button value="cancel" class="secondary">Annuler</button><button value="ok">Confirmer</button></div>`;
-        document.body.appendChild(d); d.showModal();
-        d.addEventListener('click', e=>{ if(e.target.tagName==='BUTTON'){ const v=e.target.getAttribute('value'); d.close(v); } });
-        d.addEventListener('close', ()=>{ res(d.returnValue==='ok'); d.remove(); });
-      });
-    }
-    function showToast(msg, isError=false){
-      const wrap=document.getElementById('toasts');
-      const t=document.createElement('div'); t.className='toast'; if(isError) t.style.borderColor='var(--danger)';
-      t.textContent=msg; wrap.appendChild(t);
-      setTimeout(()=>{ t.remove(); }, 2800);
+    async function maybeMigrateLocalToCloud(user){
+      const { data:rows, error } = await window.sb.from('items_v3').select('id').limit(1);
+      if(error){ console.error(error); return; }
+      if(rows && rows.length) return;
+      const localItems=store.items||[]; if(!localItems.length) return;
+      const upserts=localItems.map(it=>({ id:it.id||crypto.randomUUID(), owner_id:user.id, data:it }));
+      const { error:e2 } = await window.sb.from('items_v3').upsert(upserts);
+      if(e2){ console.error(e2); return; }
+      mode='cloud';
+      alert("Migration effectuée : tes données locales sont maintenant en ligne.");
     }
 
-    if(sb){
-      btnLogin?.addEventListener('click', async ()=>{
-        const dlg = document.getElementById('dlgLoginEmail'); dlg.showModal();
-        dlg.addEventListener('close', async ()=>{
-          if(dlg.returnValue==='ok'){
-            const email = document.getElementById('inpEmail').value.trim(); if(!email) return;
-            const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: REDIRECT_URL, shouldCreateUser: true } });
-            if(error) return showToast('Erreur: '+error.message, true);
-            showToast('Vérifie ta boîte mail.');
-          }
-        }, { once:true });
-      });
+    async function loadFromCloud(user){
+      const { data, error } = await window.sb.from('items_v3').select('id,data,updated_at').eq('owner_id',user.id).order('created_at',{ascending:true});
+      if(error){ console.error(error); return; }
+      const items=(data||[]).map(r=>({ ...r.data, id:r.data.id||r.id }));
+      store.items=items; mode='cloud'; refreshAll();
+    }
 
-      btnLoginCode?.addEventListener('click', async ()=>{
-        const dlg = document.getElementById('dlgOtp'); dlg.showModal();
-        dlg.addEventListener('close', async ()=>{
-          if(dlg.returnValue==='ok'){
-            const email = document.getElementById('inpOtpEmail').value.trim();
-            const token = document.getElementById('inpOtp').value.trim();
-            if(!email || !token) return;
-            const { error: e1 } = await sb.auth.signInWithOtp({ email, options:{ shouldCreateUser: true } });
-            if (e1) return showToast('Erreur envoi code: '+e1.message, true);
-            const { error: e2 } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-            if (e2) return showToast('Erreur vérification code: '+e2.message, true);
-            showToast('Connexion réussie !');
-          }
-        }, { once:true });
-      });
-
-      btnLogout?.addEventListener('click', async ()=>{
-        await sb.auth.signOut();
-        mode='local'; toggleAuthButtons(false); showToast('Déconnecté.');
-      });
-
-      async function ensureProfile(user){
-        try{ await sb.from('profiles').upsert({ id:user.id, email:user.email }).select().single(); }catch(e){ console.warn(e); }
+    window.sb.auth.onAuthStateChange(async (_ev, session)=>{
+      const user=session?.user||null;
+      if(user){
+        btnLogin.style.display='none'; btnLoginCode.style.display='none'; btnLogout.style.display='';
+        await ensureProfile(user);
+        await maybeMigrateLocalToCloud(user);
+        await loadFromCloud(user);
+      }else{
+        mode='local';
+        btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
       }
-      async function maybeMigrateLocalToCloud(user){
-        const { data:rows, error } = await sb.from('items_v4').select('id').limit(1);
-        if(error){ console.error(error); return; }
-        if(rows && rows.length) return;
-        const localItems=store.items||[]; if(!localItems.length) return;
-        const upserts=localItems.map(it=>({ id:it.id||crypto.randomUUID(), owner_id:user.id, data:it }));
-        const { error:e2 } = await sb.from('items_v4').upsert(upserts);
-        if(e2){ console.error(e2); return; }
-        mode='cloud'; showToast('Migration effectuée en ligne.');
-      }
-      async function loadFromCloud(user){
-        const { data, error } = await sb.from('items_v4').select('id,data,updated_at').eq('owner_id',user.id).order('created_at',{ascending:true});
-        if(error){ console.error(error); return; }
-        const items=(data||[]).map(r=>({ ...r.data, id:r.data.id||r.id }));
-        store.items=items; mode='cloud'; refreshAll();
-      }
+    });
 
-      sb.auth.onAuthStateChange(async (_ev, session)=>{
-        const user=session?.user||null;
-        toggleAuthButtons(!!user);
-        if(user){ await ensureProfile(user); await maybeMigrateLocalToCloud(user); await loadFromCloud(user); }
-        else { mode='local'; }
-      });
+    const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
+    addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
+    updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
+    deleteItem=(id)=>{ const it=store.items.find(i=>i.id===id); _deleteItem(id); if(mode==='cloud'&&it) deleteCloud(id); };
 
-      const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
-      addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
-      updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
-      deleteItem=(id)=>{ const it=store.items.find(i=>i.id===id); _deleteItem(id); if(mode==='cloud'&&it) deleteCloud(id); };
-
-      async function upsertCloud(items){
-        const { data:{ user } } = await sb.auth.getUser();
-        if(!user) return;
-        const rows=items.map(i=>({ id:i.id||crypto.randomUUID(), owner_id:user.id, data:i, updated_at:new Date().toISOString() }));
-        const { error } = await sb.from('items_v4').upsert(rows);
-        if(error) console.error(error);
-      }
-      async function deleteCloud(id){
-        const { error } = await sb.from('items_v4').delete().eq('id',id);
-        if(error) console.error(error);
-      }
-    } else {
-      // Si pas de clés fournies : masquer les boutons d'auth
-      btnLogin.style.display='none'; btnLoginCode.style.display='none';
+    async function upsertCloud(items){
+      const { data:{ user } } = await window.sb.auth.getUser();
+      if(!user) return;
+      const rows=items.map(i=>({ id:i.id||crypto.randomUUID(), owner_id:user.id, data:i, updated_at:new Date().toISOString() }));
+      const { error } = await window.sb.from('items_v3').upsert(rows);
+      if(error) console.error(error);
+    }
+    async function deleteCloud(id){
+      const { error } = await window.sb.from('items_v3').delete().eq('id',id);
+      if(error) console.error(error);
     }
   </script>
 </body>
