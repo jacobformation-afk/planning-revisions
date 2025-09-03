@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planning de Révisions — cloud ready</title>
+  <title>Planning de Révisions — cloud + realtime</title>
   <style>
     :root{
       --bg:#0b1220; --card:#121a2b; --muted:#a6b0c3; --text:#e9eef7; --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
@@ -29,14 +29,11 @@
     .list{max-height:420px;overflow:auto}
     .pill{display:inline-flex;align-items:center;gap:.5ch;background:#102038;border:1px solid #223352;border-radius:999px;padding:.35rem .6rem}
     .muted{color:#a6b0c3}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#0b1220;border:1px solid #223352;border-radius:8px;padding:.15rem .4rem}
-    .sep{height:1px;background:#1e293b;margin:.75rem 0}
-    .empty{opacity:.7;font-style:italic}
+    .hidden{display:none}
     table{width:100%;border-collapse:collapse}
     th,td{border:1px solid #223352;padding:.5rem;text-align:left;vertical-align:top}
     th{background:#0f172a}
     .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #223352;background:#0f172a;font-size:.85rem}
-    .hidden{display:none}
   </style>
 
   <!-- Supabase (CDN) -->
@@ -58,7 +55,6 @@
       <a href="#" data-tab="planning">Planning à 5 jours</a>
       <a href="#" data-tab="agenda">Agenda</a>
       <a href="#" data-tab="matieres">Matières</a>
-      <!-- Boutons Auth -->
       <div style="margin-left:auto; display:flex; gap:.5rem">
         <button id="btnSignIn" class="secondary" type="button">S'identifier</button>
         <button id="btnConnect" class="secondary" type="button" style="display:none">Connecter au cloud</button>
@@ -189,7 +185,7 @@
     </section>
   </main>
 
-  <!-- Template pour un item -->
+  <!-- Template item -->
   <template id="tplItem">
     <div class="card">
       <div class="row">
@@ -241,9 +237,7 @@
     /* ===================== MATIERES ===================== */
     function renderMatieres(){
       const ul=document.getElementById('listeMatieres'); ul.innerHTML='';
-      store.matieres.forEach(m=>{
-        const li=document.createElement('li'); li.textContent=m; ul.appendChild(li);
-      });
+      store.matieres.forEach(m=>{ const li=document.createElement('li'); li.textContent=m; ul.appendChild(li); });
       const opts=store.matieres.map(m=>`<option>${esc(m)}</option>`).join('');
       document.getElementById('matiereSelect').innerHTML=opts;
       document.querySelectorAll('.eMatiere').forEach(s=>s.innerHTML=opts);
@@ -251,8 +245,7 @@
     document.getElementById('btnAjouterMatiere').addEventListener('click',()=>{
       const v=document.getElementById('nouvelleMatiere').value.trim(); if(!v) return;
       if(!store.matieres.includes(v)) store.matieres=[...store.matieres,v];
-      document.getElementById('nouvelleMatiere').value='';
-      renderMatieres();
+      document.getElementById('nouvelleMatiere').value=''; renderMatieres();
     });
 
     /* ===================== ITEMS CRUD (LOCAL) ===================== */
@@ -278,7 +271,6 @@
       rechercheAgenda:document.getElementById('rechercheAgenda')
     };
 
-    // switch des formulaires selon type
     document.getElementById('typeSelect').addEventListener('change',(e)=>{
       const t=e.target.value;
       document.getElementById('formRevision').classList.toggle('hidden', t!=='revision');
@@ -296,10 +288,7 @@
       tpl.querySelector('.eDescription').value=it.description||'';
       const plusChapBtn=tpl.querySelector('[data-pluschap]');
       if(it.type==='lecture') plusChapBtn.classList.remove('hidden');
-      plusChapBtn?.addEventListener('click',()=>{
-        it.lus = Number(it.lus||0)+1;
-        updateItem(it.id,{ lus: it.lus });
-      });
+      plusChapBtn?.addEventListener('click',()=>{ it.lus = Number(it.lus||0)+1; updateItem(it.id,{ lus: it.lus }); });
       tpl.querySelector('.eSave').addEventListener('click',()=>{
         const patch={ type:eType.value, matiere:eMat.value,
           titre: tpl.querySelector('.eTitre').value.trim(),
@@ -393,9 +382,7 @@
     }
 
     function renderPlanning(){
-      // Header 5 jours
-      els.planningHeader.innerHTML='';
-      els.planningRow.innerHTML='';
+      els.planningHeader.innerHTML=''; els.planningRow.innerHTML='';
       const base=new Date(); base.setHours(0,0,0,0);
       const dates=[];
       for(let i=0;i<5;i++){
@@ -408,7 +395,6 @@
       }
 
       const itemsByDate={};
-      // Révisions → jalons distribués
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
         (r.jalons||[]).forEach((j,idx)=>{
@@ -416,25 +402,21 @@
           (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/(r.jalons.length||1))*100)});
         });
       });
-      // Devoir à préparer → sessions + échéance
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
         (p.sessions||[]).forEach(s=>{
           (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0});
         });
         (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
       });
-      // Devoir à rendre → échéance
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
       });
-      // Lecture → répartition chapitres
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
         (le.repartition||[]).forEach(part=>{
           (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)});
         });
       });
 
-      // Remplir les cellules
       dates.forEach(d=>{
         const td = els.planningRow.querySelector(`td[data-date="${d}"]`);
         const items = itemsByDate[d]||[];
@@ -485,29 +467,45 @@
     let mode='local'; // 'local' | 'cloud'
 
     function updateAuthUI({isAuthed, isConnected}){
-      if(!isAuthed){
-        btnSignIn.style.display='';
-        btnConnect.style.display='none';
-        btnLogout.style.display='none';
-        return;
-      }
+      if(!isAuthed){ btnSignIn.style.display=''; btnConnect.style.display='none'; btnLogout.style.display='none'; return; }
       btnSignIn.style.display='none';
-      if(isConnected){
-        btnConnect.style.display='none';
-        btnLogout.style.display='';
-      }else{
-        btnConnect.style.display='';
-        btnLogout.style.display='none';
-      }
+      if(isConnected){ btnConnect.style.display='none'; btnLogout.style.display=''; }
+      else { btnConnect.style.display=''; btnLogout.style.display='none'; }
     }
     window.updateAuthUI = updateAuthUI;
+
+    // --- Realtime helpers ---
+    async function enableRealtime(user){
+      if(!user) return;
+      if(window.itemsChannel){ try{ await window.sb.removeChannel(window.itemsChannel); }catch{} }
+      window.itemsChannel = window.sb
+        .channel('realtime:items_v3')
+        .on('postgres_changes',{
+          event:'*', schema:'public', table:'items_v3',
+          filter:`owner_id=eq.${user.id}`
+        }, (payload)=>{
+          const ev = payload.eventType;
+          if(ev==='INSERT' || ev==='UPDATE'){
+            const it = payload.new?.data; if(!it?.id) return;
+            const exists = (store.items||[]).some(x=>x.id===it.id);
+            store.items = exists ? store.items.map(x=>x.id===it.id?it:x) : [...store.items, it];
+          }else if(ev==='DELETE'){
+            const id = payload.old?.id; if(!id) return;
+            store.items = (store.items||[]).filter(x=>x.id!==id);
+          }
+          renderItems(); renderPlanning(); renderAgenda();
+        })
+        .subscribe((status)=>{ /* optional: console.log('Realtime status', status) */ });
+    }
+    async function disableRealtime(){
+      if(window.itemsChannel){ try{ await window.sb.removeChannel(window.itemsChannel); }catch{} window.itemsChannel=null; }
+    }
 
     // Magic link: envoi de l'email avec redirection explicite vers CETTE page
     btnSignIn?.addEventListener('click', async (ev)=>{
       ev.preventDefault();
       if (!window.sb?.auth) { alert("Supabase non initialisé."); return; }
-      const email = prompt("Entre ton email :");
-      if (!email) return;
+      const email = prompt("Entre ton email :"); if (!email) return;
 
       const redirectTo = `${location.origin}${location.pathname}`;
       const { error } = await window.sb.auth.signInWithOtp({
@@ -515,11 +513,10 @@
         options: { shouldCreateUser: true, emailRedirectTo: redirectTo }
       });
       if (error) { alert("Erreur: " + error.message); return; }
-
-      alert("Un email de connexion vient d'être envoyé. Clique le lien pour revenir ici.");
+      alert("Un email vient d'être envoyé. Clique le lien pour revenir ici et te connecter.");
     });
 
-    // Retour du magic link: session créée par Supabase → maj UI + nettoyage URL
+    // Retour du magic link: session créée → UI + realtime + nettoyage URL
     window.addEventListener('load', async () => {
       try {
         const hash = new URLSearchParams(location.hash.slice(1));
@@ -528,7 +525,8 @@
           window.updateAuthUI?.({ isAuthed: !!user, isConnected: false });
           btnConnect?.style.setProperty('display','');
           document.getElementById('btnSignIn')?.style.setProperty('display','none');
-          history.replaceState({}, document.title, location.pathname); // nettoie #access_token…
+          await enableRealtime(user);
+          history.replaceState({}, document.title, location.pathname);
         }
       } catch (_) {}
     });
@@ -561,20 +559,24 @@
       await ensureProfile(user);
       await maybeMigrateLocalToCloud(user);
       await loadFromCloud(user);
+      await enableRealtime(user); // ⬅️ realtime activé après connexion
       mode='cloud';
       updateAuthUI({isAuthed:true, isConnected:true});
       alert("Connecté au cloud.");
     });
     btnLogout?.addEventListener('click', async ()=>{
       mode='local';
+      await disableRealtime(); // ⬅️ coupe le realtime à la déconnexion
       await window.sb.auth.signOut();
       updateAuthUI({isAuthed:false, isConnected:false});
       alert("Déconnecté.");
     });
     window.sb.auth.onAuthStateChange(async (_ev, session)=>{
-      const isAuthed = !!session?.user;
+      const user = session?.user || null;
+      const isAuthed = !!user;
       const isConnected = isAuthed && mode==='cloud';
       updateAuthUI({isAuthed, isConnected});
+      if(isAuthed){ await enableRealtime(user); } else { await disableRealtime(); }
     });
 
     /* ===================== WRAPPERS CLOUD ===================== */
