@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Planning de Révisions — v3 (cloud ready)</title>
+  <title>Planning de Révisions — cloud ready</title>
   <style>
     :root{
       --bg:#0b1220; --card:#121a2b; --muted:#a6b0c3; --text:#e9eef7; --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
@@ -16,7 +16,7 @@
     nav a[aria-current="page"],nav a:hover,nav button:hover{background:#223352}
     main{max-width:1100px;margin:0 auto;padding:1rem}
     .tab{display:none}.tab.active{display:block}
-    .grid{display:grid;gap:1rem}@media(min-width:900px){.grid{grid-template-columns:2fr 1fr}}
+    .grid{display:grid;gap:1rem}
     .card{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
     h2{margin:.25rem 0 1rem}
     iframe{border:0;width:100%;border-radius:12px}
@@ -25,18 +25,19 @@
     button{cursor:pointer;background:#1b8f3f;border:1px solid #1e9a45;font-weight:700}
     button.secondary{background:#1b2942;border-color:#223352}
     button.danger{background:#7a1f1b;border-color:#8a241f}
+    button[type="button"]{ /* évite submit/reload par défaut */ }
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1 1 220px}
     .list{max-height:420px;overflow:auto}
     .pill{display:inline-flex;align-items:center;gap:.5ch;background:#102038;border:1px solid #223352;border-radius:999px;padding:.35rem .6rem}
     .muted{color:#a6b0c3}
     .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#0b1220;border:1px solid #223352;border-radius:8px;padding:.15rem .4rem}
     .sep{height:1px;background:#1e293b;margin:.75rem 0}
-    .hint{font-size:.9rem;color:#a6b0c3}
     .empty{opacity:.7;font-style:italic}
     table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid #223352;padding:.5rem;text-align:left}
+    th,td{border:1px solid #223352;padding:.5rem;text-align:left;vertical-align:top}
     th{background:#0f172a}
     .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #223352;background:#0f172a;font-size:.85rem}
+    .hidden{display:none}
   </style>
 
   <!-- Supabase (CDN) -->
@@ -70,14 +71,23 @@
   <main>
     <!-- ACCUEIL -->
     <section class="tab active" id="accueil">
-      <div class="grid">
+      <div class="grid" style="grid-template-columns:2fr 1fr">
         <div class="card">
-          <h2>Bonjour Octave</h2>
+          <h2>Bonjour</h2>
           <p class="muted">Bienvenue — musique du jour.</p>
           <h3>🎵 Musique</h3>
           <iframe title="Lecteur Deezer" scrolling="no" allowtransparency="true"
             src="https://www.deezer.com/plugins/player?format=classic&autoplay=false&playlist=true&width=700&height=350&color=007FEB&layout=dark&size=medium&type=tracks&id=3135556&app_id=1"
             height="100"></iframe>
+        </div>
+        <div class="card">
+          <h2>Synchronisation</h2>
+          <p><span class="badge">Local</span> → hors-ligne. <span class="badge">Cloud</span> → sauvegarde & multi-appareils.</p>
+          <ul>
+            <li><strong>S’identifier</strong> : email (OTP ou magic link).</li>
+            <li><strong>Connecter au cloud</strong> : charge tes données en ligne (et migre si cloud vide).</li>
+            <li><strong>Se déconnecter</strong> : revient en local + sign out.</li>
+          </ul>
         </div>
       </div>
     </section>
@@ -104,7 +114,7 @@
         <!-- Spécifiques par type -->
         <div id="formRevision" class="row">
           <input id="dateRevision" type="date" aria-label="Date de révision" />
-          <div class="pill">Jalons: 0,1,3,7,15,30 jours</div>
+          <div class="pill">Jalons: J+0, J+1, J+3, J+7, J+15, J+30</div>
         </div>
 
         <div id="formRendre" class="row hidden">
@@ -130,12 +140,13 @@
         </div>
 
         <div class="row">
-          <button id="btnAjouter">Ajouter</button>
+          <button id="btnAjouter" type="button">Ajouter</button>
           <button id="btnExport" class="secondary" type="button">Exporter (.json)</button>
           <input id="fileImport" type="file" accept=".json" style="display:none">
           <button id="btnImport" class="secondary" type="button">Importer (.json)</button>
         </div>
       </div>
+
       <div class="card">
         <h2>Liste</h2>
         <div id="listeItems" class="list"></div>
@@ -146,7 +157,10 @@
     <section class="tab" id="planning">
       <div class="card">
         <h2>Planning à 5 jours</h2>
-        <div id="planningList" class="grid" style="grid-template-columns: repeat(5, 1fr)"></div>
+        <table id="planningTable">
+          <thead><tr id="planningHeader"></tr></thead>
+          <tbody><tr id="planningRow"></tr></tbody>
+        </table>
       </div>
     </section>
 
@@ -159,8 +173,7 @@
         </div>
         <table id="agendaTable">
           <thead><tr><th>Date</th><th>Titre</th><th>Matière</th><th>Détails</th><th>%</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <tbody></tbody></table>
       </div>
     </section>
 
@@ -211,7 +224,7 @@
     const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
     const isoDate=d=>d.toISOString().slice(0,10);
     const todayIso=()=>isoDate(new Date());
-    const esc=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const esc=(str='')=>String(str).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
     /* ===================== STORE LOCAL ===================== */
     const store={
@@ -260,17 +273,19 @@
       ouvrageAuteur:document.getElementById('ouvrageAuteur'),
       chapitresTotal:document.getElementById('chapitresTotal'),
       listeItems:document.getElementById('listeItems'),
-      planningList:document.getElementById('planningList'),
+      planningHeader:document.getElementById('planningHeader'),
+      planningRow:document.getElementById('planningRow'),
       agendaTable:document.querySelector('#agendaTable tbody'),
       rechercheAgenda:document.getElementById('rechercheAgenda')
     };
 
     // switch des formulaires selon type
-    els.typeSelect.addEventListener('change',()=>{
-      document.getElementById('formRevision').classList.toggle('hidden', els.typeSelect.value!=='revision');
-      document.getElementById('formRendre').classList.toggle('hidden', els.typeSelect.value!=='devoir_rendre');
-      document.getElementById('formPreparer').classList.toggle('hidden', els.typeSelect.value!=='devoir_preparer');
-      document.getElementById('formLecture').classList.toggle('hidden', els.typeSelect.value!=='lecture');
+    document.getElementById('typeSelect').addEventListener('change',(e)=>{
+      const t=e.target.value;
+      document.getElementById('formRevision').classList.toggle('hidden', t!=='revision');
+      document.getElementById('formRendre').classList.toggle('hidden', t!=='devoir_rendre');
+      document.getElementById('formPreparer').classList.toggle('hidden', t!=='devoir_preparer');
+      document.getElementById('formLecture').classList.toggle('hidden', t!=='lecture');
     });
 
     function row(it){
@@ -303,7 +318,7 @@
 
     function renderItems(){ els.listeItems.innerHTML=''; (store.items||[]).forEach(it=>els.listeItems.appendChild(row(it))); }
 
-    function addItem(obj){
+    function addItem(){
       const type=els.typeSelect.value;
       const matiere=els.matiereSelect.value || store.matieres[0];
       const titre=els.titreInput.value.trim();
@@ -316,13 +331,12 @@
       }
       if(type==='devoir_rendre'){
         const echeance=els.echeanceRendre.value; if(!echeance) return alert('Échéance requise.');
-        payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:0};
+        payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:Number(els.progressRendre.value||0)};
       }
       if(type==='devoir_preparer'){
         const echeance=els.echeancePreparer.value; if(!echeance) return alert('Échéance requise.');
         const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.');
         const dureeSession=Number(els.dureeSession.value||0) || 25;
-        // Sessions générées jusqu’à l’échéance
         const sessions=[]; let cumul=0; let cursor=toLocalDate(todayIso());
         while(cumul<dureeTotale){
           sessions.push({date:isoDate(cursor),duree:Math.min(dureeSession,dureeTotale-cumul),fait:false});
@@ -332,9 +346,8 @@
       }
       if(type==='lecture'){
         const echeance=todayIso();
-        const chapitres=Number(els.chapitresTotal.value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
-        const ouvrage={titre:els.ouvrageTitre.value.trim(),auteur:els.ouvrageAuteur.value.trim(),chapitres};
-        // Répartition lecture: 1 chapitre/jour par défaut
+        const chapitres=Number(document.getElementById('chapitresTotal').value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
+        const ouvrage={titre:document.getElementById('ouvrageTitre').value.trim(),auteur:document.getElementById('ouvrageAuteur').value.trim(),chapitres};
         const repartition=[]; let cursor=toLocalDate(todayIso());
         for(let i=1;i<=chapitres;i++){ repartition.push({date:isoDate(cursor),chapitres:`Chapitre ${i}`}); cursor=addDays(cursor,1);}
         payload={...payload,echeance,ouvrage,repartition,lus:0};
@@ -381,69 +394,73 @@
     }
 
     function renderPlanning(){
-      const root=els.planningList; root.innerHTML='';
+      // Header 5 jours
+      els.planningHeader.innerHTML='';
+      els.planningRow.innerHTML='';
       const base=new Date(); base.setHours(0,0,0,0);
+      const dates=[];
       for(let i=0;i<5;i++){
         const d=new Date(base); d.setDate(base.getDate()+i);
-        const iso=isoDate(d);
-        const col=document.createElement('div'); col.className='planning-col';
-        col.innerHTML=`<h3>${fmtDateLabel(d)}</h3>`;
-        root.appendChild(col);
+        dates.push(isoDate(d));
+        const th=document.createElement('th'); th.textContent=fmtDateLabel(d);
+        els.planningHeader.appendChild(th);
+        const td=document.createElement('td'); td.dataset.date=isoDate(d);
+        els.planningRow.appendChild(td);
       }
-      const itemsByDate={};
 
-      // Révisions
+      const itemsByDate={};
+      // Révisions → jalons distribués
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
-        r.jalons.forEach((j,idx)=>{
+        (r.jalons||[]).forEach((j,idx)=>{
           const d=isoDate(addDays(base,j));
-          (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:r.description, prog:Math.round(((idx+1)/r.jalons.length)*100)});
+          (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/(r.jalons.length||1))*100)});
         });
       });
-      // Préparer
+      // Devoir à préparer → sessions + échéance
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
-        (p.sessions||[]).forEach(s=>{ (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
+        (p.sessions||[]).forEach(s=>{
+          (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0});
+        });
         (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
       });
-      // Rendre
+      // Devoir à rendre → échéance
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
       });
-      // Lecture
+      // Lecture → répartition chapitres
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
-        (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
+        (le.repartition||[]).forEach(part=>{
+          (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)});
+        });
       });
 
-      // Rendu colonnes
-      [...root.querySelectorAll('.planning-col')].forEach((col,idx)=>{
-        const d=isoDate(addDays(new Date(), idx));
-        const items=itemsByDate[d]||[];
-        if(!items.length){ col.innerHTML += `<div class="muted">Rien de prévu.</div>`; return; }
-        col.innerHTML += items.map(it=>`<div class="pill"><strong>${esc(it.titre)}</strong> — ${esc(it.matiere)} <span class="muted">· ${esc(it.desc||'')}</span> <span class="muted">· ${it.prog}%</span></div>`).join('<br>');
+      // Remplir les cellules
+      dates.forEach(d=>{
+        const td = els.planningRow.querySelector(`td[data-date="${d}"]`);
+        const items = itemsByDate[d]||[];
+        if(!items.length){ td.innerHTML = `<div class="muted">Rien de prévu.</div>`; return; }
+        td.innerHTML = items.map(it=>`<div class="pill"><strong>${esc(it.titre)}</strong> — ${esc(it.matiere)} <span class="muted">· ${esc(it.desc||'')}</span> <span class="muted">· ${it.prog}%</span></div>`).join('<br>');
       });
     }
 
     function renderAgenda(){
       const tbody=els.agendaTable; tbody.innerHTML='';
       const byDate={};
-      // Révisions
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
-        r.jalons.forEach((j,idx)=>{
+        (r.jalons||[]).forEach((j,idx)=>{
           const d=isoDate(addDays(base,j));
-          (byDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/r.jalons.length)*100)});
+          (byDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/(r.jalons.length||1))*100)});
         });
       });
-      // Préparer
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
         (p.sessions||[]).forEach(s=>{ (byDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
         (byDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
       });
-      // Rendre
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         (byDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
       });
-      // Lecture
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
         (le.repartition||[]).forEach(part=>{ (byDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
       });
@@ -462,7 +479,7 @@
     }
     els.rechercheAgenda.addEventListener('input', renderAgenda);
 
-    /* ===================== AUTH & SYNC SUPABASE (modifié SEULEMENT ici) ===================== */
+    /* ===================== AUTH & SYNC SUPABASE ===================== */
     const btnSignIn=document.getElementById('btnSignIn');
     const btnConnect=document.getElementById('btnConnect');
     const btnLogout=document.getElementById('btnLogout');
@@ -484,25 +501,11 @@
         btnLogout.style.display='none';
       }
     }
-
-    // Sign in avec code (OTP 6 chiffres)
-    btnSignIn?.addEventListener('click', async ()=>{
-      const email=prompt("Entre ton email pour recevoir un code (6 chiffres) :");
-      if(!email) return;
-      const { error } = await window.sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
-      if(error) return alert("Erreur: " + error.message);
-      const token = prompt("Code reçu par email (6 chiffres) :");
-      if(!token) return;
-      const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type:'email' });
-      if(e2) return alert("Erreur vérification code: " + e2.message);
-      alert("Identification réussie. Tu peux maintenant te connecter au cloud.");
-      updateAuthUI({isAuthed:true, isConnected:false});
-    });
+    window.updateAuthUI = updateAuthUI; // pour y accéder depuis le patch
 
     async function ensureProfile(user){
       try{ await window.sb.from('profiles').upsert({ id:user.id, email:user.email }).select().single(); }catch(e){ console.warn(e); }
     }
-
     async function maybeMigrateLocalToCloud(user){
       const { data:rows, error } = await window.sb.from('items_v3').select('id').limit(1);
       if(error){ console.error(error); return; }
@@ -513,7 +516,6 @@
       if(e2){ console.error(e2); return; }
       alert("Migration effectuée : tes données locales sont maintenant en ligne.");
     }
-
     async function loadFromCloud(user){
       const { data, error } = await window.sb.from('items_v3')
         .select('id,data,updated_at,created_at')
@@ -523,8 +525,6 @@
       const items=(data||[]).map(r=>({ ...r.data, id:r.data.id||r.id }));
       store.items=items; mode='cloud'; refreshAll();
     }
-
-    // Connexion cloud explicite
     btnConnect?.addEventListener('click', async ()=>{
       const { data:{ user } } = await window.sb.auth.getUser();
       if(!user) return alert("Identifie-toi d'abord.");
@@ -535,28 +535,22 @@
       updateAuthUI({isAuthed:true, isConnected:true});
       alert("Connecté au cloud.");
     });
-
-    // Déconnexion (cloud + session)
     btnLogout?.addEventListener('click', async ()=>{
       mode='local';
       await window.sb.auth.signOut();
       updateAuthUI({isAuthed:false, isConnected:false});
       alert("Déconnecté.");
     });
-
-    // Suivi d’état
     window.sb.auth.onAuthStateChange(async (_ev, session)=>{
       const isAuthed = !!session?.user;
       const isConnected = isAuthed && mode==='cloud';
       updateAuthUI({isAuthed, isConnected});
     });
-
-    /* ===================== WRAPPERS CLOUD ===================== */
+    /* Wrappers cloud */
     const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
     addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
     updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
     deleteItem=(id)=>{ const it=store.items.find(i=>i.id===id); _deleteItem(id); if(mode==='cloud'&&it) deleteCloud(id); };
-
     async function upsertCloud(items){
       const { data:{ user } } = await window.sb.auth.getUser();
       if(!user) return;
@@ -570,50 +564,57 @@
     }
   </script>
 
-  <!-- Binding résilient pour garantir l'ouverture du prompt d'email -->
+  <!-- Patch OTP/magic link : demande le code + gère le retour du lien -->
   <script>
   (function(){
-    window.__emailSignIn = async function(){
-      try{
-        if(!window.sb || !window.sb.auth){ alert("Supabase n'est pas initialisé."); return; }
-        const email = prompt("Entre ton email pour recevoir un code (6 chiffres) :");
-        if(!email) return;
-        const { error } = await window.sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
-        if(error){ alert("Erreur: " + error.message); return; }
-        const token = prompt("Code reçu par email (6 chiffres) :");
-        if(!token) return;
-        const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type:'email' });
-        if(e2){ alert("Erreur vérification code: " + e2.message); return; }
-        alert("Identification réussie. Clique sur « Connecter au cloud » pour charger/migrer tes données.");
-        if(typeof window.updateAuthUI === 'function'){ window.updateAuthUI({isAuthed:true, isConnected:false}); }
-        const connectBtn = document.getElementById('btnConnect'); if(connectBtn) connectBtn.style.display='';
-        const signInBtn = document.getElementById('btnSignIn'); if(signInBtn) signInBtn.style.display='none';
-      }catch(err){
-        alert("Erreur inattendue: " + (err && err.message ? err.message : err));
-      }
-    };
+    const btnSignIn  = document.getElementById('btnSignIn');
+    const btnConnect = document.getElementById('btnConnect');
 
-    const ids = ['btnSignIn','btnLogin','btnLoginCode'];
-    ids.forEach(id => {
-      const el = document.getElementById(id);
-      if(el){
-        try{ el.style.display = ''; }catch(_){}
-        el.addEventListener('click', window.__emailSignIn);
-        el.onclick = window.__emailSignIn;
-      }
+    if (btnSignIn) {
+      btnSignIn.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        if (!window.sb?.auth) { alert("Supabase non initialisé."); return; }
+
+        const email = prompt("Entre ton email :");
+        if (!email) return;
+
+        // Redirection explicite vers cette page
+        const redirectTo = `${location.origin}${location.pathname}`;
+        const { error } = await window.sb.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: true, emailRedirectTo: redirectTo }
+        });
+        if (error) { alert("Erreur: " + error.message); return; }
+
+        // OTP si présent dans l'email (templates avec {{ .Token }})
+        const token = prompt("Entre le code à 6 chiffres reçu par email (ou laisse vide si tu utilises le lien) :");
+        if (token) {
+          const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type: 'email' });
+          if (e2) { alert("Code invalide: " + e2.message); return; }
+          const { data:{ user } } = await window.sb.auth.getUser();
+          window.updateAuthUI?.({ isAuthed: !!user, isConnected: false });
+          btnConnect?.style.setProperty('display','');
+          btnSignIn?.style.setProperty('display','none');
+          alert('Identification réussie. Clique sur « Connecter au cloud » pour charger/migrer tes données.');
+        } else {
+          alert("Tu peux aussi cliquer le lien du mail pour te connecter.");
+        }
+      });
+    }
+
+    // Retour du magic link
+    window.addEventListener('load', async () => {
+      try {
+        const hash = new URLSearchParams(location.hash.slice(1));
+        if (hash.get('access_token')) {
+          const { data:{ user } } = await window.sb.auth.getUser();
+          window.updateAuthUI?.({ isAuthed: !!user, isConnected: false });
+          btnConnect?.style.setProperty('display','');
+          document.getElementById('btnSignIn')?.style.setProperty('display','none');
+          history.replaceState({}, document.title, location.pathname); // nettoie #access_token…
+        }
+      } catch (_) {}
     });
-
-    try {
-      if(window.sb && window.sb.auth && window.sb.auth.getUser){
-        window.sb.auth.getUser().then(({data})=>{
-          const user = data && data.user;
-          if(!user){
-            const si = document.getElementById('btnSignIn');
-            if(si) si.style.display='';
-          }
-        }).catch(()=>{});
-      }
-    } catch(_) {}
   })();
   </script>
 </body>
