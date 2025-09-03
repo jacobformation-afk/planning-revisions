@@ -25,7 +25,6 @@
     button{cursor:pointer;background:#1b8f3f;border:1px solid #1e9a45;font-weight:700}
     button.secondary{background:#1b2942;border-color:#223352}
     button.danger{background:#7a1f1b;border-color:#8a241f}
-    button[type="button"]{ /* évite submit/reload par défaut */ }
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1 1 220px}
     .list{max-height:420px;overflow:auto}
     .pill{display:inline-flex;align-items:center;gap:.5ch;background:#102038;border:1px solid #223352;border-radius:999px;padding:.35rem .6rem}
@@ -84,7 +83,7 @@
           <h2>Synchronisation</h2>
           <p><span class="badge">Local</span> → hors-ligne. <span class="badge">Cloud</span> → sauvegarde & multi-appareils.</p>
           <ul>
-            <li><strong>S’identifier</strong> : email (OTP ou magic link).</li>
+            <li><strong>S’identifier</strong> : email (magic link).</li>
             <li><strong>Connecter au cloud</strong> : charge tes données en ligne (et migre si cloud vide).</li>
             <li><strong>Se déconnecter</strong> : revient en local + sign out.</li>
           </ul>
@@ -479,7 +478,7 @@
     }
     els.rechercheAgenda.addEventListener('input', renderAgenda);
 
-    /* ===================== AUTH & SYNC SUPABASE ===================== */
+    /* ===================== AUTH & SYNC SUPABASE (magic link ONLY) ===================== */
     const btnSignIn=document.getElementById('btnSignIn');
     const btnConnect=document.getElementById('btnConnect');
     const btnLogout=document.getElementById('btnLogout');
@@ -501,7 +500,38 @@
         btnLogout.style.display='none';
       }
     }
-    window.updateAuthUI = updateAuthUI; // pour y accéder depuis le patch
+    window.updateAuthUI = updateAuthUI;
+
+    // Magic link: envoi de l'email avec redirection explicite vers CETTE page
+    btnSignIn?.addEventListener('click', async (ev)=>{
+      ev.preventDefault();
+      if (!window.sb?.auth) { alert("Supabase non initialisé."); return; }
+      const email = prompt("Entre ton email :");
+      if (!email) return;
+
+      const redirectTo = `${location.origin}${location.pathname}`;
+      const { error } = await window.sb.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true, emailRedirectTo: redirectTo }
+      });
+      if (error) { alert("Erreur: " + error.message); return; }
+
+      alert("Un email de connexion vient d'être envoyé. Clique le lien pour revenir ici.");
+    });
+
+    // Retour du magic link: session créée par Supabase → maj UI + nettoyage URL
+    window.addEventListener('load', async () => {
+      try {
+        const hash = new URLSearchParams(location.hash.slice(1));
+        if (hash.get('access_token')) {
+          const { data:{ user } } = await window.sb.auth.getUser();
+          window.updateAuthUI?.({ isAuthed: !!user, isConnected: false });
+          btnConnect?.style.setProperty('display','');
+          document.getElementById('btnSignIn')?.style.setProperty('display','none');
+          history.replaceState({}, document.title, location.pathname); // nettoie #access_token…
+        }
+      } catch (_) {}
+    });
 
     async function ensureProfile(user){
       try{ await window.sb.from('profiles').upsert({ id:user.id, email:user.email }).select().single(); }catch(e){ console.warn(e); }
@@ -527,7 +557,7 @@
     }
     btnConnect?.addEventListener('click', async ()=>{
       const { data:{ user } } = await window.sb.auth.getUser();
-      if(!user) return alert("Identifie-toi d'abord.");
+      if(!user) return alert("Identifie-toi d'abord (clique le lien dans l'email).");
       await ensureProfile(user);
       await maybeMigrateLocalToCloud(user);
       await loadFromCloud(user);
@@ -546,7 +576,8 @@
       const isConnected = isAuthed && mode==='cloud';
       updateAuthUI({isAuthed, isConnected});
     });
-    /* Wrappers cloud */
+
+    /* ===================== WRAPPERS CLOUD ===================== */
     const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
     addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
     updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
@@ -562,60 +593,6 @@
       const { error } = await window.sb.from('items_v3').delete().eq('id',id);
       if(error) console.error(error);
     }
-  </script>
-
-  <!-- Patch OTP/magic link : demande le code + gère le retour du lien -->
-  <script>
-  (function(){
-    const btnSignIn  = document.getElementById('btnSignIn');
-    const btnConnect = document.getElementById('btnConnect');
-
-    if (btnSignIn) {
-      btnSignIn.addEventListener('click', async (ev) => {
-        ev.preventDefault();
-        if (!window.sb?.auth) { alert("Supabase non initialisé."); return; }
-
-        const email = prompt("Entre ton email :");
-        if (!email) return;
-
-        // Redirection explicite vers cette page
-        const redirectTo = `${location.origin}${location.pathname}`;
-        const { error } = await window.sb.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: true, emailRedirectTo: redirectTo }
-        });
-        if (error) { alert("Erreur: " + error.message); return; }
-
-        // OTP si présent dans l'email (templates avec {{ .Token }})
-        const token = prompt("Entre le code à 6 chiffres reçu par email (ou laisse vide si tu utilises le lien) :");
-        if (token) {
-          const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type: 'email' });
-          if (e2) { alert("Code invalide: " + e2.message); return; }
-          const { data:{ user } } = await window.sb.auth.getUser();
-          window.updateAuthUI?.({ isAuthed: !!user, isConnected: false });
-          btnConnect?.style.setProperty('display','');
-          btnSignIn?.style.setProperty('display','none');
-          alert('Identification réussie. Clique sur « Connecter au cloud » pour charger/migrer tes données.');
-        } else {
-          alert("Tu peux aussi cliquer le lien du mail pour te connecter.");
-        }
-      });
-    }
-
-    // Retour du magic link
-    window.addEventListener('load', async () => {
-      try {
-        const hash = new URLSearchParams(location.hash.slice(1));
-        if (hash.get('access_token')) {
-          const { data:{ user } } = await window.sb.auth.getUser();
-          window.updateAuthUI?.({ isAuthed: !!user, isConnected: false });
-          btnConnect?.style.setProperty('display','');
-          document.getElementById('btnSignIn')?.style.setProperty('display','none');
-          history.replaceState({}, document.title, location.pathname); // nettoie #access_token…
-        }
-      } catch (_) {}
-    });
-  })();
   </script>
 </body>
 </html>
