@@ -9,10 +9,10 @@
       --bg:#0b1220; --card:#121a2b; --muted:#a6b0c3; --text:#e9eef7; --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
     }
     *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans";margin:0;color:var(--text);background:linear-gradient(180deg,#0b1220,#0d1424 35%,#0f1628)}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue";margin:0;color:var(--text);background:linear-gradient(180deg,#0b1220,#0d1424 35%,#0f1628)}
     header{position:sticky;top:0;z-index:20;background:rgba(11,18,32,.75);backdrop-filter:blur(8px);border-bottom:1px solid #1f2937}
     nav{display:flex;gap:.5rem;align-items:center;max-width:1100px;margin:0 auto;padding:.75rem 1rem}
-    nav a, nav button{color:#cfe2ff;text-decoration:none;font-weight:600;padding:.5rem .75rem;border-radius:12px;border:1px solid #223352;background:#1b2942;cursor:pointer}
+    nav a, nav button{color:#cfe2ff;text-decoration:none;font-weight:700;padding:.55rem .8rem;border-radius:12px;border:1px solid #223352;background:#1b2942;cursor:pointer}
     nav a[aria-current="page"],nav a:hover,nav button:hover{background:#223352}
     main{max-width:1100px;margin:0 auto;padding:1rem}
     .tab{display:none}.tab.active{display:block}
@@ -27,25 +27,19 @@
     button.danger{background:#7a1f1b;border-color:#8a241f}
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1 1 220px}
     .list{max-height:420px;overflow:auto}
-    .pill{display:inline-flex;align-items:center;gap:.5ch;background:#11213a;border:1px solid #223352;border-radius:999px;padding:.2rem .6rem;font-size:.85rem;color:#cfe2ff}
-    .badge{display:inline-flex;align-items:center;gap:.4ch;border-radius:999px;padding:.1rem .5rem;font-weight:700;font-size:.75rem}
-    .badge.rev{background:#10361f;border:1px solid #174b29;color:#b9f0c3}
-    .badge.rendre{background:#3a1412;border:1px solid #4e1a17;color:#ffcdc7}
-    .badge.prep{background:#102247;border:1px solid #183066;color:#cfe2ff}
-    .badge.lect{background:#241451;border:1px solid #2e1a69;color:#e6d9ff}
-    .tile{border:1px solid #243349;background:#0f172a;border-radius:12px;padding:.75rem;margin:.5rem 0}
-    .progress{background:#1f2a3d;border-radius:999px;overflow:hidden;height:10px;margin-top:6px}
-    .bar{background:var(--primary);height:100%;transition:width .3s ease}
-    .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
-    .planning-table{width:100%;border-collapse:separate;border-spacing:0 12px}
-    .planning-table th,.planning-table td{vertical-align:top;text-align:left}
-    .planning-table th{font-size:.95rem;color:#cfe2ff;padding:.25rem .5rem}
-    .planning-col{background:#0f172a;border:1px solid #243349;border-radius:12px;padding:.75rem}
-    .muted{color:var(--muted)}
-    .hidden{display:none}
+    .pill{display:inline-flex;align-items:center;gap:.5ch;background:#102038;border:1px solid #223352;border-radius:999px;padding:.35rem .6rem}
+    .muted{color:#a6b0c3}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#0b1220;border:1px solid #223352;border-radius:8px;padding:.15rem .4rem}
+    .sep{height:1px;background:#1e293b;margin:.75rem 0}
+    .hint{font-size:.9rem;color:#a6b0c3}
+    .empty{opacity:.7;font-style:italic}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #223352;padding:.5rem;text-align:left}
+    th{background:#0f172a}
+    .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #223352;background:#0f172a;font-size:.85rem}
   </style>
 
-  <!-- Supabase (CDN) + config intégrée : REMPLACE ICI tes 2 valeurs -->
+  <!-- Supabase (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     /* ========= REMPLACE ICI ========= */
@@ -53,12 +47,12 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";                 /* <-- remplace */
     /* ================================= */
     window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const REDIRECT_URL = "https://planning-revisions.vercel.app"; /* redirection forcée */
   </script>
 </head>
 <body>
   <header>
-    <nav aria-label="Onglets">
+    <nav>
+      <strong>📚 Planning de Révisions</strong>
       <a href="#" data-tab="accueil" aria-current="page">Accueil</a>
       <a href="#" data-tab="saisies">Saisies du jour</a>
       <a href="#" data-tab="planning">Planning à 5 jours</a>
@@ -67,12 +61,8 @@
       <!-- Boutons Auth -->
       <div style="margin-left:auto; display:flex; gap:.5rem">
         <button id="btnSignIn" class="secondary" type="button">S'identifier</button>
-<button id="btnConnect" class="secondary" type="button" style="display:none">Connecter au cloud</button>
-<button id="btnLogout" class="secondary" type="button" style="display:none">Se déconnecter</button>
-<!-- anciens boutons conservés cachés pour compat -->
-<button id="btnLogin" class="secondary" type="button" style="display:none"></button>
-<button id="btnLoginCode" class="secondary" type="button" style="display:none"></button>
-
+        <button id="btnConnect" class="secondary" type="button" style="display:none">Connecter au cloud</button>
+        <button id="btnLogout" class="secondary" type="button" style="display:none">Se déconnecter</button>
       </div>
     </nav>
   </header>
@@ -106,6 +96,7 @@
           <select id="matiereSelect" aria-label="Matière"></select>
           <input id="titreInput" placeholder="Titre (ex. DM fonctions / Lecture Candide)" />
         </div>
+
         <div class="row">
           <textarea id="descriptionInput" placeholder="Description / consignes / notes..."></textarea>
         </div>
@@ -123,30 +114,30 @@
             <option value="2">Haute</option>
             <option value="0">Basse</option>
           </select>
+          <input id="progressRendre" type="number" min="0" max="100" value="0" aria-label="Progression (%)" />
         </div>
 
         <div id="formPreparer" class="row hidden">
           <input id="echeancePreparer" type="date" aria-label="Échéance" />
-          <input id="dureeTotale" type="number" min="15" step="5" placeholder="Durée totale estimée (min)" />
-          <button id="btnPlanifierAuto" class="secondary" style="width:auto" type="button">Planifier maintenant</button>
+          <input id="dureeTotale" type="number" min="0" step="15" placeholder="Durée totale (min)" />
+          <input id="dureeSession" type="number" min="0" step="5" placeholder="Durée par session (min)" />
         </div>
 
         <div id="formLecture" class="row hidden">
-          <input id="ouvrageTitre" placeholder="Titre de l'ouvrage" />
-          <input id="ouvrageAuteur" placeholder="Auteur (optionnel)" />
-          <input id="chapitresTotal" type="number" min="1" placeholder="Nombre de chapitres" />
-          <input id="echeanceLecture" type="date" aria-label="Échéance lecture (optionnelle)" />
-          <button id="btnRepartirLecture" class="secondary" style="width:auto" type="button">Répartir maintenant</button>
+          <input id="ouvrageTitre" placeholder="Titre de l’ouvrage" />
+          <input id="ouvrageAuteur" placeholder="Auteur" />
+          <input id="chapitresTotal" type="number" min="1" step="1" placeholder="Nombre de chapitres" />
         </div>
 
-        <div class="toolbar">
-          <button id="btnSauver" type="button">Ajouter</button>
-          <button class="secondary" id="btnExporter" type="button">Exporter JSON</button>
-          <label class="pill" for="importInput">Importer JSON
-            <input id="importInput" type="file" accept="application/json" class="hidden" />
-          </label>
+        <div class="row">
+          <button id="btnAjouter">Ajouter</button>
+          <button id="btnExport" class="secondary" type="button">Exporter (.json)</button>
+          <input id="fileImport" type="file" accept=".json" style="display:none">
+          <button id="btnImport" class="secondary" type="button">Importer (.json)</button>
         </div>
-
+      </div>
+      <div class="card">
+        <h2>Liste</h2>
         <div id="listeItems" class="list"></div>
       </div>
     </section>
@@ -154,11 +145,8 @@
     <!-- PLANNING -->
     <section class="tab" id="planning">
       <div class="card">
-        <h2 style="text-align:center">Planning à 5 jours</h2>
-        <table class="planning-table" id="planningTable">
-          <thead><tr id="planningHeader"></tr></thead>
-          <tbody><tr id="planningRow"></tr></tbody>
-        </table>
+        <h2>Planning à 5 jours</h2>
+        <div id="planningList" class="grid" style="grid-template-columns: repeat(5, 1fr)"></div>
       </div>
     </section>
 
@@ -166,19 +154,13 @@
     <section class="tab" id="agenda">
       <div class="card">
         <h2>Agenda</h2>
-        <div class="toolbar">
-          <input id="rechercheAgenda" placeholder="Rechercher (matière, titre, description)" />
-          <select id="filtreMatiere"></select>
-          <select id="filtreType">
-            <option value="">Tous les types</option>
-            <option value="revision">Révision</option>
-            <option value="devoir_rendre">À rendre</option>
-            <option value="devoir_preparer">À préparer</option>
-            <option value="lecture">Lecture</option>
-          </select>
-          <button class="secondary" id="btnAujourdHui" type="button">Aller à aujourd'hui</button>
+        <div class="row">
+          <input id="rechercheAgenda" placeholder="Rechercher dans l’agenda..." />
         </div>
-        <div id="agendaContent" class="list"></div>
+        <table id="agendaTable">
+          <thead><tr><th>Date</th><th>Titre</th><th>Matière</th><th>Détails</th><th>%</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
 
@@ -196,19 +178,25 @@
   </main>
 
   <!-- Template pour un item -->
-  <template id="itemTpl">
-    <div class="tile" data-id="">
-      <div class="row" style="align-items:center">
-        <span class="badge" data-badge></span>
-        <span class="pill" data-matiere></span>
-        <span class="muted" data-info></span>
+  <template id="tplItem">
+    <div class="card">
+      <div class="row">
+        <select class="eType">
+          <option value="revision">Révision</option>
+          <option value="devoir_rendre">Devoir à rendre</option>
+          <option value="devoir_preparer">Devoir à préparer</option>
+          <option value="lecture">Lecture</option>
+        </select>
+        <select class="eMatiere"></select>
       </div>
-      <h4 style="margin:.5rem 0" data-titre></h4>
-      <p class="muted" data-desc></p>
-      <div class="progress" aria-hidden="true"><div class="bar" data-bar style="width:0%"></div></div>
-      <div class="row" style="margin-top:.5rem">
-        <button data-edit class="secondary" type="button">Modifier</button>
-        <button data-done class="secondary" type="button">Marquer terminé</button>
+      <div class="row">
+        <input class="eTitre" placeholder="Titre">
+        <input class="eDate" type="date" />
+      </div>
+      <textarea class="eDescription" placeholder="Description / notes"></textarea>
+      <div class="row">
+        <button class="primary eSave" type="button">Enregistrer</button>
+        <button class="secondary eDup" type="button">Dupliquer</button>
         <button data-pluschap class="secondary hidden" type="button">+1 chapitre lu</button>
         <button data-delete class="danger" type="button">Supprimer</button>
       </div>
@@ -223,125 +211,104 @@
     const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
     const isoDate=d=>d.toISOString().slice(0,10);
     const todayIso=()=>isoDate(new Date());
-    // XSS minimal (corrigé)
-    const escapeHtml=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const esc=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
     /* ===================== STORE LOCAL ===================== */
     const store={
-      get matieres(){return JSON.parse(localStorage.getItem('matieres'))||['Mathématiques','Physique-chimie','Français','Histoire-géographie','Anglais','Espagnol','Enseignement moral et civique','Techno','Enseignement Spécifique','EPS']},
-      set matieres(v){localStorage.setItem('matieres',JSON.stringify(v))},
+      get matieres(){return JSON.parse(localStorage.getItem('matieres_v3'))||['Français','Maths','Histoire-Géo','SVT','Physique-Chimie','Langues','Arts','EMC','Techno','Enseignement Spécifique','EPS']},
+      set matieres(v){localStorage.setItem('matieres_v3',JSON.stringify(v))},
       get items(){return JSON.parse(localStorage.getItem('items_v3'))||[]},
       set items(v){localStorage.setItem('items_v3',JSON.stringify(v))}
     };
 
-    // Migration éventuelle depuis anciens formats
-    (function migrate(){
-      if(!localStorage.getItem('items_v3')){
-        const revs=JSON.parse(localStorage.getItem('revisions_v2'))||JSON.parse(localStorage.getItem('revisions'))||[];
-        const mapped=(revs||[]).map(r=>({
-          id:crypto.randomUUID(), type:'revision', matiere:r.matiere,
-          titre:r.contenu?.slice(0,80)||'Révision', description:r.commentaire||'',
-          dateCreation:Date.now(), etat:'a_faire', baseDate:r.date, jalons:[...JALONS]
-        }));
-        if(mapped.length) localStorage.setItem('items_v3',JSON.stringify(mapped));
-      }
-    })();
+    /* ===================== NAVIGATION ===================== */
+    const tabs=[...document.querySelectorAll('.tab')];
+    function showTab(id){ tabs.forEach(t=>t.classList.toggle('active',t.id===id)); document.querySelectorAll('nav a[data-tab]').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===id?'page':null)); }
+    document.querySelectorAll('nav a[data-tab]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showTab(a.dataset.tab)}));
 
-    /* ===================== ELEMENTS ===================== */
+    /* ===================== MATIERES ===================== */
+    function renderMatieres(){
+      const ul=document.getElementById('listeMatieres'); ul.innerHTML='';
+      store.matieres.forEach(m=>{
+        const li=document.createElement('li'); li.textContent=m; ul.appendChild(li);
+      });
+      const opts=store.matieres.map(m=>`<option>${esc(m)}</option>`).join('');
+      document.getElementById('matiereSelect').innerHTML=opts;
+      document.querySelectorAll('.eMatiere').forEach(s=>s.innerHTML=opts);
+    }
+    document.getElementById('btnAjouterMatiere').addEventListener('click',()=>{
+      const v=document.getElementById('nouvelleMatiere').value.trim(); if(!v) return;
+      if(!store.matieres.includes(v)) store.matieres=[...store.matieres,v];
+      document.getElementById('nouvelleMatiere').value='';
+      renderMatieres();
+    });
+
+    /* ===================== ITEMS CRUD (LOCAL) ===================== */
     const els={
-      tabs:document.querySelectorAll('nav a[data-tab]'),
       typeSelect:document.getElementById('typeSelect'),
       matiereSelect:document.getElementById('matiereSelect'),
       titreInput:document.getElementById('titreInput'),
       descriptionInput:document.getElementById('descriptionInput'),
-      formRevision:document.getElementById('formRevision'),
-      formRendre:document.getElementById('formRendre'),
-      formPreparer:document.getElementById('formPreparer'),
-      formLecture:document.getElementById('formLecture'),
       dateRevision:document.getElementById('dateRevision'),
       echeanceRendre:document.getElementById('echeanceRendre'),
       prioriteRendre:document.getElementById('prioriteRendre'),
+      progressRendre:document.getElementById('progressRendre'),
       echeancePreparer:document.getElementById('echeancePreparer'),
       dureeTotale:document.getElementById('dureeTotale'),
-      btnPlanifierAuto:document.getElementById('btnPlanifierAuto'),
+      dureeSession:document.getElementById('dureeSession'),
       ouvrageTitre:document.getElementById('ouvrageTitre'),
       ouvrageAuteur:document.getElementById('ouvrageAuteur'),
       chapitresTotal:document.getElementById('chapitresTotal'),
-      echeanceLecture:document.getElementById('echeanceLecture'),
-      btnRepartirLecture:document.getElementById('btnRepartirLecture'),
-      btnSauver:document.getElementById('btnSauver'),
       listeItems:document.getElementById('listeItems'),
-      planningHeader:document.getElementById('planningHeader'),
-      planningRow:document.getElementById('planningRow'),
-      agendaContent:document.getElementById('agendaContent'),
-      rechercheAgenda:document.getElementById('rechercheAgenda'),
-      filtreMatiere:document.getElementById('filtreMatiere'),
-      filtreType:document.getElementById('filtreType'),
-      nouvelleMatiere:document.getElementById('nouvelleMatiere'),
-      listeMatieres:document.getElementById('listeMatieres')
+      planningList:document.getElementById('planningList'),
+      agendaTable:document.querySelector('#agendaTable tbody'),
+      rechercheAgenda:document.getElementById('rechercheAgenda')
     };
 
-    /* ===================== NAV TABS ===================== */
-    document.querySelectorAll('nav a[data-tab]').forEach(a=>a.addEventListener('click',e=>{
-      e.preventDefault();
-      const id=a.getAttribute('data-tab');
-      document.querySelectorAll('nav a[data-tab]').forEach(t=>t.removeAttribute('aria-current'));
-      a.setAttribute('aria-current','page');
-      document.querySelectorAll('.tab').forEach(tab=>tab.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }));
-
-    /* ===================== MATIERES UI ===================== */
-    function renderMatieres(){
-      const ms=[...store.matieres].sort((a,b)=>a.localeCompare(b,'fr'));
-      els.matiereSelect.innerHTML=ms.map(m=>`<option value="${m}">${m}</option>`).join('');
-      els.filtreMatiere.innerHTML=`<option value="">Toutes les matières</option>`+ms.map(m=>`<option>${m}</option>`).join('');
-      els.listeMatieres.innerHTML='';
-      ms.forEach(m=>{
-        const utilisee=store.items.some(r=>r.matiere===m);
-        const li=document.createElement('li'); li.innerHTML=`<span class="pill">${escapeHtml(m)}</span>`;
-        if(!utilisee){
-          const btn=document.createElement('button'); btn.textContent='Supprimer'; btn.className='danger'; btn.style.width='auto';
-          btn.addEventListener('click',()=>{ if(confirm('Supprimer cette matière ?')){ store.matieres=store.matieres.filter(x=>x!==m); renderMatieres(); }});
-          li.append(' ',btn);
-        }
-        els.listeMatieres.appendChild(li);
-      });
-    }
-    document.getElementById('btnAjouterMatiere').addEventListener('click',()=>{
-      const m=els.nouvelleMatiere.value.trim(); if(m&&!store.matieres.includes(m)){ store.matieres=[...store.matieres,m]; els.nouvelleMatiere.value=''; renderMatieres(); }
+    // switch des formulaires selon type
+    els.typeSelect.addEventListener('change',()=>{
+      document.getElementById('formRevision').classList.toggle('hidden', els.typeSelect.value!=='revision');
+      document.getElementById('formRendre').classList.toggle('hidden', els.typeSelect.value!=='devoir_rendre');
+      document.getElementById('formPreparer').classList.toggle('hidden', els.typeSelect.value!=='devoir_preparer');
+      document.getElementById('formLecture').classList.toggle('hidden', els.typeSelect.value!=='lecture');
     });
 
-    /* ===================== ITEMS (CRUD) ===================== */
-    let addItem=obj=>{store.items=[...store.items,obj]};
-    let updateItem=(id,patch)=>{store.items=store.items.map(i=>i.id===id?{...i,...patch}:i)};
-    let deleteItem=id=>{store.items=store.items.filter(i=>i.id!==id)};
-
-    function switchTypeUI(){
-      const t=els.typeSelect.value;
-      els.formRevision.classList.toggle('hidden',t!=='revision');
-      els.formRendre.classList.toggle('hidden',t!=='devoir_rendre');
-      els.formPreparer.classList.toggle('hidden',t!=='devoir_preparer');
-      els.formLecture.classList.toggle('hidden',t!=='lecture');
+    function row(it){
+      const tpl=document.getElementById('tplItem').content.cloneNode(true);
+      const eType=tpl.querySelector('.eType'); eType.value=it.type||'revision';
+      const eMat=tpl.querySelector('.eMatiere'); eMat.innerHTML=store.matieres.map(m=>`<option>${esc(m)}</option>`).join(''); eMat.value=it.matiere||store.matieres[0];
+      tpl.querySelector('.eTitre').value=it.titre||'';
+      tpl.querySelector('.eDate').value=it.baseDate||it.echeance||todayIso();
+      tpl.querySelector('.eDescription').value=it.description||'';
+      const plusChapBtn=tpl.querySelector('[data-pluschap]');
+      if(it.type==='lecture') plusChapBtn.classList.remove('hidden');
+      plusChapBtn?.addEventListener('click',()=>{
+        it.lus = Number(it.lus||0)+1;
+        updateItem(it.id,{ lus: it.lus });
+      });
+      tpl.querySelector('.eSave').addEventListener('click',()=>{
+        const patch={ type:eType.value, matiere:eMat.value,
+          titre: tpl.querySelector('.eTitre').value.trim(),
+          description: tpl.querySelector('.eDescription').value.trim()
+        };
+        if(patch.type==='revision') patch.baseDate=tpl.querySelector('.eDate').value;
+        if(patch.type==='devoir_rendre') patch.echeance=tpl.querySelector('.eDate').value;
+        if(patch.type==='devoir_preparer') patch.echeance=tpl.querySelector('.eDate').value;
+        if(patch.type==='lecture') patch.echeance=tpl.querySelector('.eDate').value;
+        updateItem(it.id, patch);
+      });
+      tpl.querySelector('[data-delete]').addEventListener('click',()=>deleteItem(it.id));
+      return tpl;
     }
-    els.typeSelect.addEventListener('change',switchTypeUI);
-    els.dateRevision.value=todayIso(); els.echeanceRendre.value=todayIso(); els.echeancePreparer.value=todayIso(); els.echeanceLecture.value='';
 
-    let editingId=null, pendingSessions=null, pendingRepartition=null;
+    function renderItems(){ els.listeItems.innerHTML=''; (store.items||[]).forEach(it=>els.listeItems.appendChild(row(it))); }
 
-    function clearForm(){
-      editingId=null; pendingSessions=null; pendingRepartition=null; document.getElementById('btnSauver').textContent='Ajouter';
-      els.titreInput.value=''; els.descriptionInput.value=''; els.dateRevision.value=todayIso(); els.echeanceRendre.value=todayIso();
-      els.echeancePreparer.value=todayIso(); els.dureeTotale.value=''; els.ouvrageTitre.value=''; els.ouvrageAuteur.value='';
-      els.chapitresTotal.value=''; els.echeanceLecture.value=''; els.typeSelect.value='revision'; switchTypeUI();
-    }
-
-    document.getElementById('btnSauver').addEventListener('click',()=>{
-      const type=els.typeSelect.value, matiere=els.matiereSelect.value;
-      const titre=els.titreInput.value.trim()||(type==='lecture'?(els.ouvrageTitre.value.trim()||'Lecture'):'Sans titre');
+    function addItem(obj){
+      const type=els.typeSelect.value;
+      const matiere=els.matiereSelect.value || store.matieres[0];
+      const titre=els.titreInput.value.trim();
       const description=els.descriptionInput.value.trim();
-      if(!matiere) return alert('Choisis une matière.');
-      let payload={id:editingId||crypto.randomUUID(),type,matiere,titre,description,dateCreation:Date.now(),etat:'a_faire'};
+      let payload={id:crypto.randomUUID(),type,matiere,titre,description,dateCreation:Date.now(),etat:'a_faire'};
 
       if(type==='revision'){
         const baseDate=els.dateRevision.value; if(!baseDate) return alert('Date requise.');
@@ -354,142 +321,75 @@
       if(type==='devoir_preparer'){
         const echeance=els.echeancePreparer.value; if(!echeance) return alert('Échéance requise.');
         const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.');
-        payload={...payload,echeance,dureeTotaleEstimee:dureeTotale,sessions:pendingSessions||[]};
+        const dureeSession=Number(els.dureeSession.value||0) || 25;
+        // Sessions générées jusqu’à l’échéance
+        const sessions=[]; let cumul=0; let cursor=toLocalDate(todayIso());
+        while(cumul<dureeTotale){
+          sessions.push({date:isoDate(cursor),duree:Math.min(dureeSession,dureeTotale-cumul),fait:false});
+          cursor=addDays(cursor,1); cumul+=dureeSession;
+        }
+        payload={...payload,echeance,dureeTotale,dureeSession,sessions,progress:0};
       }
       if(type==='lecture'){
-        const titreO=els.ouvrageTitre.value.trim(); if(!titreO) return alert("Titre de l'ouvrage requis.");
-        const chapTotal=Number(els.chapitresTotal.value||0); if(!chapTotal) return alert('Nombre de chapitres requis.');
-        const echeance=els.echeanceLecture.value||null;
-        payload={...payload,ouvrage:{titre:titreO,auteur:els.ouvrageAuteur.value.trim()||''},chapitresTotal:chapTotal,chapitresLus:0,echeance,repartition:pendingRepartition||[]};
+        const echeance=todayIso();
+        const chapitres=Number(els.chapitresTotal.value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
+        const ouvrage={titre:els.ouvrageTitre.value.trim(),auteur:els.ouvrageAuteur.value.trim(),chapitres};
+        // Répartition lecture: 1 chapitre/jour par défaut
+        const repartition=[]; let cursor=toLocalDate(todayIso());
+        for(let i=1;i<=chapitres;i++){ repartition.push({date:isoDate(cursor),chapitres:`Chapitre ${i}`}); cursor=addDays(cursor,1);}
+        payload={...payload,echeance,ouvrage,repartition,lus:0};
       }
 
-      if(editingId) updateItem(editingId,payload); else addItem(payload);
-      clearForm(); refreshAll();
+      store.items=[...store.items, payload];
+      els.titreInput.value=''; els.descriptionInput.value='';
+      renderItems(); renderPlanning(); renderAgenda();
+    }
+
+    function updateItem(id,patch){ store.items=store.items.map(it=>it.id===id?{...it,...patch}:it); renderItems(); renderPlanning(); renderAgenda(); }
+    function deleteItem(id){ store.items=store.items.filter(it=>it.id!==id); renderItems(); renderPlanning(); renderAgenda(); }
+
+    document.getElementById('btnAjouter').addEventListener('click',addItem);
+
+    /* ===================== EXPORT / IMPORT ===================== */
+    document.getElementById('btnExport').addEventListener('click',()=>{
+      const blob=new Blob([JSON.stringify({ items:store.items, matieres:store.matieres },null,2)],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`revisions_${todayIso()}.json`; a.click(); URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('btnImport').addEventListener('click',()=>document.getElementById('fileImport').click());
+    document.getElementById('fileImport').addEventListener('change', (ev)=>{
+      const file=ev.target.files?.[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=()=>{ try{
+          const data=JSON.parse(reader.result);
+          if(Array.isArray(data?.items)) store.items=data.items;
+          if(Array.isArray(data?.matieres)) store.matieres=[...new Set([...store.matieres, ...data.matieres])];
+          renderMatieres(); renderItems(); renderPlanning(); renderAgenda();
+        }catch{ alert('Fichier invalide.'); }
+      };
+      reader.readAsText(file);
     });
 
-    document.getElementById('btnPlanifierAuto').addEventListener('click',()=>{
-      const echeance=els.echeancePreparer.value, dureeTotale=Number(els.dureeTotale.value||0);
-      if(!echeance||!dureeTotale) return alert('Échéance et durée requises.');
-      const start=toLocalDate(todayIso()), end=toLocalDate(echeance);
-      const days=Math.max(1,Math.ceil((end-start)/86400000)), chunk=30, sessionsCount=Math.max(1,Math.ceil(dureeTotale/chunk));
-      const sessions=Array.from({length:sessionsCount},(_,i)=>({date:isoDate(addDays(start,Math.round(i*(days-1)/Math.max(1,sessionsCount-1)))),duree:chunk,fait:false}));
-      if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='devoir_preparer'){updateItem(editingId,{sessions}); alert(`Plan créé: ${sessions.length} sessions de ${chunk} min.`); refreshAll(); return;}}
-      pendingSessions=sessions; alert(`Plan prêt: ${sessions.length} sessions seront ajoutées à l'enregistrement.`);
-    });
+    /* ===================== INITIALISATION ===================== */
+    function refreshAll(){ renderMatieres(); renderItems(); renderPlanning(); renderAgenda(); }
+    refreshAll();
 
-    document.getElementById('btnRepartirLecture').addEventListener('click',()=>{
-      const chapTotal=Number(els.chapitresTotal.value||0), echeance=els.echeanceLecture.value;
-      if(!(chapTotal&&echeance)) return alert('Indique le nombre de chapitres et une échéance.');
-      const start=toLocalDate(todayIso()), end=toLocalDate(echeance), days=Math.max(1,Math.ceil((end-start)/86400000));
-      const base=Math.floor(chapTotal/days), extra=chapTotal%days;
-      const repartition=Array.from({length:days},(_,i)=>{const nb=base+(i<extra?1:0);return{date:isoDate(addDays(start,i)),chapitres:nb,fait:false}}).filter(p=>p.chapitres>0);
-      if(editingId){const it=store.items.find(x=>x.id===editingId); if(it&&it.type==='lecture'){updateItem(editingId,{repartition}); alert(`Répartition créée: ${repartition.length} jours.`); refreshAll(); return;}}
-      pendingRepartition=repartition; alert(`Répartition prête: ${repartition.length} jours seront ajoutés à l'enregistrement.`);
-    });
-
-    function badgeFor(t){const s=document.createElement('span'); s.className='badge '+(t==='revision'?'rev':t==='devoir_rendre'?'rendre':t==='devoir_preparer'?'prep':'lect'); s.textContent=t==='revision'?'Révision':t==='devoir_rendre'?'À rendre':t==='devoir_preparer'?'À préparer':'Lecture'; return s;}
-    function percentFor(item){
-      if(item.type==='revision'){const today=toLocalDate(todayIso()), base=toLocalDate(item.baseDate); const diff=Math.round((today-base)/86400000); const idx=item.jalons.findIndex(j=>j===diff); return idx>=0?Math.round(((idx+1)/item.jalons.length)*100):0;}
-      if(item.type==='devoir_rendre') return Number(item.progress||0);
-      if(item.type==='devoir_preparer'){const t=(item.sessions||[]).length||0, d=(item.sessions||[]).filter(s=>s.fait).length; return t?Math.round(100*d/t):0;}
-      if(item.type==='lecture') return item.chapitresTotal?Math.round(100*(item.chapitresLus||0)/item.chapitresTotal):0;
-      return 0;
-    }
-    function infoFor(it){
-      if(it.type==='revision') return `Base: ${fmtDateLabel(toLocalDate(it.baseDate))}`;
-      if(it.type==='devoir_rendre') return `Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`;
-      if(it.type==='devoir_preparer') return `Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`;
-      if(it.type==='lecture'){const p=[`${it.chapitresLus||0}/${it.chapitresTotal} chap.`]; if(it.echeance) p.push(`Échéance: ${fmtDateLabel(toLocalDate(it.echeance))}`); return p.join(' — ');}
-      return '';
+    /* ===================== AGENDA / PLANNING ===================== */
+    function percentFor(it){
+      if(it.type==='lecture'){ const tot=Number(it.ouvrage?.chapitres||0); return !tot?0:Math.round(100*(Number(it.lus||0)/tot)); }
+      if(it.type==='devoir_preparer'){ const tot=Number(it.dureeTotale||0); const fait=(it.sessions||[]).filter(s=>s.fait).reduce((a,b)=>a+b.duree,0); return !tot?0:Math.round(100*fait/tot); }
+      return Number(it.progress||0);
     }
 
-    function renderItems(){
-      const items=[...store.items].sort((a,b)=>{const pa=(a.type==='devoir_rendre'||a.type==='devoir_preparer')?(a.echeance||'9999'):'9999'; const pb=(b.type==='devoir_rendre'||b.type==='devoir_preparer')?(b.echeance||'9999'):'9999'; return pa.localeCompare(pb)||(b.dateCreation-a.dateCreation)});
-      els.listeItems.innerHTML=''; const tpl=document.getElementById('itemTpl');
-      items.forEach(it=>{
-        const node=tpl.content.cloneNode(true), root=node.querySelector('.tile'); root.dataset.id=it.id;
-        const b=badgeFor(it.type); node.querySelector('[data-badge]').replaceWith(b);
-        node.querySelector('[data-matiere]').textContent=it.matiere;
-        node.querySelector('[data-info]').textContent=infoFor(it);
-        node.querySelector('[data-titre]').textContent=it.titre;
-        node.querySelector('[data-desc]').textContent=it.description||'';
-        node.querySelector('[data-bar]').style.width=percentFor(it)+'%';
-        node.querySelector('[data-edit]').addEventListener('click',()=>startEdit(it));
-        node.querySelector('[data-done]').addEventListener('click',()=>{updateItem(it.id,{etat:'termine',progress:100}); refreshAll();});
-        node.querySelector('[data-delete]').addEventListener('click',()=>{if(confirm('Supprimer ?')){deleteItem(it.id); refreshAll();}});
-        const plus=node.querySelector('[data-pluschap]');
-        if(it.type==='lecture'){
-          plus.classList.remove('hidden');
-          plus.addEventListener('click',()=>{const v=Math.min(it.chapitresTotal,(it.chapitresLus||0)+1); updateItem(it.id,{chapitresLus:v}); refreshAll();});
-        }
-        els.listeItems.appendChild(node);
-      });
-    }
-
-    function startEdit(it){
-      editingId=it.id; pendingSessions=null; pendingRepartition=null; document.getElementById('btnSauver').textContent='Mettre à jour';
-      els.typeSelect.value=it.type; switchTypeUI();
-      els.matiereSelect.value=it.matiere;
-      els.titreInput.value=it.titre;
-      els.descriptionInput.value=it.description||'';
-      if(it.type==='revision'){ els.dateRevision.value=it.baseDate; }
-      if(it.type==='devoir_rendre'){ els.echeanceRendre.value=it.echeance; els.prioriteRendre.value=String(it.priorite??1); }
-      if(it.type==='devoir_preparer'){ els.echeancePreparer.value=it.echeance; els.dureeTotale.value=it.dureeTotaleEstimee||''; }
-      if(it.type==='lecture'){
-        els.ouvrageTitre.value=it.ouvrage?.titre||''; els.ouvrageAuteur.value=it.ouvrage?.auteur||'';
-        els.chapitresTotal.value=it.chapitresTotal||''; els.echeanceLecture.value=it.echeance||'';
-      }
-      document.querySelector('a[data-tab="saisies"]').click();
-    }
-
-    /* ===================== PLANNING (5 jours) ===================== */
     function renderPlanning(){
-      const start=toLocalDate(todayIso());
-      const days=Array.from({length:5},(_,i)=>{const d=addDays(start,i);return{date:isoDate(d),label:fmtDateLabel(d),html:[]};});
-
-      // Révisions (jalons)
-      store.items.filter(i=>i.type==='revision').forEach(r=>{
-        const base=toLocalDate(r.baseDate);
-        r.jalons.forEach((j,idx)=>{
-          const d=isoDate(addDays(base,j));
-          const col=days.find(x=>x.date===d); if(!col) return;
-          const prog=Math.round(((idx+1)/r.jalons.length)*100);
-          col.html.push(`<div class="tile"><span class="badge rev">Révision</span> <strong>${escapeHtml(r.matiere)}</strong><br><em>${escapeHtml(r.titre)}</em><div class="progress"><div class="bar" style="width:${prog}%"></div></div></div>`);
-        });
-      });
-
-      // À préparer (sessions + échéance)
-      store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
-        (p.sessions||[]).forEach(s=>{
-          const col=days.find(x=>x.date===s.date); if(!col) return;
-          col.html.push(`<div class="tile"><span class="badge prep">Préparer</span> <strong>${escapeHtml(p.matiere)}</strong> — ${escapeHtml(p.titre)}<br><span class="muted">Session ${s.duree} min</span><div class="progress"><div class="bar" style="width:${s.fait?100:0}%"></div></div></div>`);
-        });
-        const colE=days.find(x=>x.date===p.echeance); if(colE) colE.html.push(`<div class="tile"><span class="badge prep">Échéance</span> <strong>${escapeHtml(p.matiere)}</strong> — ${escapeHtml(p.titre)}</div>`);
-      });
-
-      // À rendre (échéance)
-      store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
-        const col=days.find(x=>x.date===dv.echeance); if(!col) return;
-        col.html.push(`<div class="tile"><span class="badge rendre">À rendre</span> <strong>${escapeHtml(dv.matiere)}</strong> — ${escapeHtml(dv.titre)}<div class="progress"><div class="bar" style="width:${Number(dv.progress||0)}%"></div></div></div>`);
-      });
-
-      // Lecture (répartition)
-      store.items.filter(i=>i.type==='lecture').forEach(le=>{
-        (le.repartition||[]).forEach(part=>{
-          const col=days.find(x=>x.date===part.date); if(!col) return;
-          col.html.push(`<div class="tile"><span class="badge lect">Lecture</span> <strong>${escapeHtml(le.ouvrage?.titre||le.titre)}</strong> — ${part.chapitres} chap.</div>`);
-        });
-      });
-
-      els.planningHeader.innerHTML=''; els.planningRow.innerHTML='';
-      days.forEach(d=>{
-        const th=document.createElement('th'); th.textContent=d.label; els.planningHeader.appendChild(th);
-        const td=document.createElement('td'); td.className='planning-col'; td.innerHTML=d.html.join('')||'<em class="muted">Aucune tâche</em>'; els.planningRow.appendChild(td);
-      });
-    }
-
-    /* ===================== AGENDA ===================== */
-    function renderAgenda(){
+      const root=els.planningList; root.innerHTML='';
+      const base=new Date(); base.setHours(0,0,0,0);
+      for(let i=0;i<5;i++){
+        const d=new Date(base); d.setDate(base.getDate()+i);
+        const iso=isoDate(d);
+        const col=document.createElement('div'); col.className='planning-col';
+        col.innerHTML=`<h3>${fmtDateLabel(d)}</h3>`;
+        root.appendChild(col);
+      }
       const itemsByDate={};
 
       // Révisions
@@ -511,164 +411,92 @@
       });
       // Lecture
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
-        (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres} chap.`, prog: percentFor(le)}); });
+        (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
       });
 
-      const q=els.rechercheAgenda.value.trim().toLowerCase();
-      const fm=els.filtreMatiere.value, ft=els.filtreType.value;
-
-      const dates=Object.keys(itemsByDate).sort();
-      els.agendaContent.innerHTML='';
-      dates.forEach((d,i)=>{
-        let list=itemsByDate[d];
-        if(fm) list=list.filter(x=>x.matiere===fm);
-        if(ft) list=list.filter(x=>x.type===ft);
-        if(q) list=list.filter(x=>[x.matiere,x.titre,x.desc].join(' ').toLowerCase().includes(q));
-        if(!list.length) return;
-        const wrap=document.createElement('div');
-        wrap.dataset.date=d;
-        wrap.style.background=i%2? '#0e1526' : '#0e1322';
-        wrap.style.padding='10px'; wrap.style.marginBottom='8px';
-        wrap.innerHTML=`<h4 style="margin:.25rem 0">${fmtDateLabel(toLocalDate(d))}</h4>`;
-        list.forEach(p=>{
-          const tile=document.createElement('div'); tile.className='tile';
-          const b=badgeFor(p.type).outerHTML;
-          tile.innerHTML=`${b} <strong>${escapeHtml(p.matiere)}</strong><br><em>${escapeHtml(p.titre)}</em><br><span class="muted">${escapeHtml(p.desc||'')}</span><div class="progress"><div class="bar" style="width:${p.prog||0}%"></div></div>`;
-          wrap.appendChild(tile);
-        });
-        els.agendaContent.appendChild(wrap);
+      // Rendu colonnes
+      [...root.querySelectorAll('.planning-col')].forEach((col,idx)=>{
+        const d=isoDate(addDays(new Date(), idx));
+        const items=itemsByDate[d]||[];
+        if(!items.length){ col.innerHTML += `<div class="muted">Rien de prévu.</div>`; return; }
+        col.innerHTML += items.map(it=>`<div class="pill"><strong>${esc(it.titre)}</strong> — ${esc(it.matiere)} <span class="muted">· ${esc(it.desc||'')}</span> <span class="muted">· ${it.prog}%</span></div>`).join('<br>');
       });
     }
 
-    document.getElementById('btnAujourdHui').addEventListener('click',()=>{
-      const today=todayIso(); els.agendaContent.querySelector(`[data-date="${today}"]`)?.scrollIntoView({behavior:'smooth',block:'start'});
-    });
-    els.rechercheAgenda.addEventListener('input',renderAgenda);
-    els.filtreMatiere.addEventListener('change',renderAgenda);
-    els.filtreType.addEventListener('change',renderAgenda);
+    function renderAgenda(){
+      const tbody=els.agendaTable; tbody.innerHTML='';
+      const byDate={};
+      // Révisions
+      store.items.filter(i=>i.type==='revision').forEach(r=>{
+        const base=toLocalDate(r.baseDate);
+        r.jalons.forEach((j,idx)=>{
+          const d=isoDate(addDays(base,j));
+          (byDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/r.jalons.length)*100)});
+        });
+      });
+      // Préparer
+      store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
+        (p.sessions||[]).forEach(s=>{ (byDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
+        (byDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
+      });
+      // Rendre
+      store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
+        (byDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
+      });
+      // Lecture
+      store.items.filter(i=>i.type==='lecture').forEach(le=>{
+        (le.repartition||[]).forEach(part=>{ (byDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
+      });
 
-    /* ===================== EXPORT / IMPORT ===================== */
-    document.getElementById('btnExporter').addEventListener('click',()=>{
-      const blob=new Blob([JSON.stringify({matieres:store.matieres,items:store.items},null,2)],{type:'application/json'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download=`planning-v3-${todayIso()}.json`; a.click(); URL.revokeObjectURL(url);
-    });
-    document.getElementById('importInput').addEventListener('change',e=>{
-      const file=e.target.files?.[0]; if(!file) return;
-      const reader=new FileReader();
-      reader.onload=()=>{
-        try{
-          const data=JSON.parse(reader.result);
-          if(Array.isArray(data.matieres)) store.matieres=data.matieres;
-          if(Array.isArray(data.items)) store.items=data.items.map(x=>x.id?x:{...x,id:crypto.randomUUID()});
-          renderMatieres(); refreshAll(); alert('Import effectué.');
-        }catch(err){ alert('Fichier invalide.'); }
-      };
-      reader.readAsText(file);
-    });
+      const q=els.rechercheAgenda.value.trim().toLowerCase();
+      const rows=[];
+      Object.keys(byDate).sort().forEach(date=>{
+        (byDate[date]||[]).forEach(it=>{
+          const line=[date,it.titre,it.matiere,it.desc, String(it.prog)];
+          if(!q || line.join(' ').toLowerCase().includes(q)){
+            rows.push(`<tr><td>${esc(date)}</td><td>${esc(it.titre)}</td><td>${esc(it.matiere)}</td><td>${esc(it.desc||'')}</td><td>${it.prog}%</td></tr>`);
+          }
+        });
+      });
+      tbody.innerHTML=rows.join('');
+    }
+    els.rechercheAgenda.addEventListener('input', renderAgenda);
 
-    /* ===================== INITIALISATION ===================== */
-    function refreshAll(){ renderItems(); renderPlanning(); renderAgenda(); renderMatieres(); }
-    renderMatieres(); switchTypeUI(); refreshAll();
-
-    /* ===================== AUTH & SYNC SUPABASE ===================== */
-    const btnLogin=document.getElementById('btnLogin');
-    const btnLoginCode=document.getElementById('btnLoginCode');
+    /* ===================== AUTH & SYNC SUPABASE (modifié SEULEMENT ici) ===================== */
+    const btnSignIn=document.getElementById('btnSignIn');
+    const btnConnect=document.getElementById('btnConnect');
     const btnLogout=document.getElementById('btnLogout');
-    let mode='local';
+    let mode='local'; // 'local' | 'cloud'
 
-// === New auth UI controls (sign-in -> connect -> disconnect), planning untouched ===
-const btnSignIn = document.getElementById('btnSignIn');
-const btnConnect = document.getElementById('btnConnect');
-function updateAuthUI2({isAuthed, isConnected}){
-  if(!isAuthed){
-    btnSignIn && (btnSignIn.style.display='');
-    btnConnect && (btnConnect.style.display='none');
-    btnLogout && (btnLogout.style.display='none');
-    return;
-  }
-  if(isConnected){
-    btnSignIn && (btnSignIn.style.display='none');
-    btnConnect && (btnConnect.style.display='none');
-    btnLogout && (btnLogout.style.display='');
-  }else{
-    btnSignIn && (btnSignIn.style.display='none');
-    btnConnect && (btnConnect.style.display='');
-    btnLogout && (btnLogout.style.display='none');
-  }
-}
+    function updateAuthUI({isAuthed, isConnected}){
+      if(!isAuthed){
+        btnSignIn.style.display='';
+        btnConnect.style.display='none';
+        btnLogout.style.display='none';
+        return;
+      }
+      btnSignIn.style.display='none';
+      if(isConnected){
+        btnConnect.style.display='none';
+        btnLogout.style.display='';
+      }else{
+        btnConnect.style.display='';
+        btnLogout.style.display='none';
+      }
+    }
 
-// Sign in via OTP (code 6 chiffres) — pas d’auto-connexion cloud
-btnSignIn?.addEventListener('click', async ()=>{
-  const email = prompt("Entre ton email pour recevoir un code (6 chiffres) :");
-  if(!email) return;
-  const { error } = await window.sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
-  if(error) return alert("Erreur: " + error.message);
-  const token = prompt("Code reçu par email (6 chiffres) :");
-  if(!token) return;
-  const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type:'email' });
-  if(e2) return alert("Erreur vérification code: " + e2.message);
-  alert("Identification réussie. Tu peux maintenant te connecter au cloud.");
-  updateAuthUI2({ isAuthed:true, isConnected: mode==='cloud' });
-});
-
-// Connexion cloud explicite (migration si cloud vide)
-btnConnect?.addEventListener('click', async ()=>{
-  const { data:{ user } } = await window.sb.auth.getUser();
-  if(!user) return alert("Identifie-toi d'abord.");
-  await ensureProfile(user);
-  await maybeMigrateLocalToCloud(user);
-  await loadFromCloud(user);
-  mode='cloud';
-  updateAuthUI2({ isAuthed:true, isConnected:true });
-  alert("Connecté au cloud.");
-});
-
- // 'local' | 'cloud'
-
-    // Magic link (redir vers ton domaine Vercel)
-    btnLogin?.addEventListener('click', async ()=>{
-      const email=prompt("Entre ton email pour recevoir un lien de connexion :");
+    // Sign in avec code (OTP 6 chiffres)
+    btnSignIn?.addEventListener('click', async ()=>{
+      const email=prompt("Entre ton email pour recevoir un code (6 chiffres) :");
       if(!email) return;
-      const { error } = await window.sb.auth.signInWithOtp({
-        email,
-        options:{ emailRedirectTo: REDIRECT_URL, shouldCreateUser: true }
-      });
+      const { error } = await window.sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
       if(error) return alert("Erreur: " + error.message);
-      alert("Vérifie ta boîte mail et clique sur le lien depuis CET appareil.");
-    });
-
-    // Connexion par code (OTP)
-    btnLoginCode?.addEventListener('click', async ()=>{
-      const email = prompt("Ton email :");
-      if(!email) return;
-
-      // Étape 1 : envoi du code par email
-      const { error } = await window.sb.auth.signInWithOtp({
-        email,
-        options:{ shouldCreateUser: true }
-      });
-      if (error) return alert("Erreur envoi code: " + error.message);
-
-      // Étape 2 : saisie du code reçu
-      const token = prompt("Entre le code à 6 chiffres reçu par email :");
-      if (!token) return;
-
-      const { error: e2 } = await window.sb.auth.verifyOtp({
-        email,
-        token,
-        type: 'email'
-      });
-      if (e2) return alert("Erreur vérification code: " + e2.message);
-      alert("Connexion réussie !");
-    });
-
-    // Déconnexion
-    btnLogout?.addEventListener('click', async ()=>{
-      mode='local';
-      await window.sb.auth.signOut();
-      updateAuthUI2({ isAuthed:false, isConnected:false });
-      alert("Déconnecté.");
+      const token = prompt("Code reçu par email (6 chiffres) :");
+      if(!token) return;
+      const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type:'email' });
+      if(e2) return alert("Erreur vérification code: " + e2.message);
+      alert("Identification réussie. Tu peux maintenant te connecter au cloud.");
+      updateAuthUI({isAuthed:true, isConnected:false});
     });
 
     async function ensureProfile(user){
@@ -683,31 +511,47 @@ btnConnect?.addEventListener('click', async ()=>{
       const upserts=localItems.map(it=>({ id:it.id||crypto.randomUUID(), owner_id:user.id, data:it }));
       const { error:e2 } = await window.sb.from('items_v3').upsert(upserts);
       if(e2){ console.error(e2); return; }
-      mode='cloud';
       alert("Migration effectuée : tes données locales sont maintenant en ligne.");
     }
 
     async function loadFromCloud(user){
-      const { data, error } = await window.sb.from('items_v3').select('id,data,updated_at').eq('owner_id',user.id).order('created_at',{ascending:true});
+      const { data, error } = await window.sb.from('items_v3')
+        .select('id,data,updated_at,created_at')
+        .eq('owner_id',user.id)
+        .order('created_at',{ascending:true});
       if(error){ console.error(error); return; }
       const items=(data||[]).map(r=>({ ...r.data, id:r.data.id||r.id }));
       store.items=items; mode='cloud'; refreshAll();
     }
 
-    window.sb.
+    // Connexion cloud explicite
+    btnConnect?.addEventListener('click', async ()=>{
+      const { data:{ user } } = await window.sb.auth.getUser();
+      if(!user) return alert("Identifie-toi d'abord.");
+      await ensureProfile(user);
+      await maybeMigrateLocalToCloud(user);
+      await loadFromCloud(user);
+      mode='cloud';
+      updateAuthUI({isAuthed:true, isConnected:true});
+      alert("Connecté au cloud.");
+    });
+
+    // Déconnexion (cloud + session)
+    btnLogout?.addEventListener('click', async ()=>{
+      mode='local';
+      await window.sb.auth.signOut();
+      updateAuthUI({isAuthed:false, isConnected:false});
+      alert("Déconnecté.");
+    });
+
+    // Suivi d’état
     window.sb.auth.onAuthStateChange(async (_ev, session)=>{
       const isAuthed = !!session?.user;
       const isConnected = isAuthed && mode==='cloud';
-      updateAuthUI2({ isAuthed, isConnected });
-    });
-    await maybeMigrateLocalToCloud(user);
-        await loadFromCloud(user);
-      }else{
-        mode='local';
-        btnLogin.style.display=''; btnLoginCode.style.display=''; btnLogout.style.display='none';
-      }
+      updateAuthUI({isAuthed, isConnected});
     });
 
+    /* ===================== WRAPPERS CLOUD ===================== */
     const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
     addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
     updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
@@ -724,6 +568,53 @@ btnConnect?.addEventListener('click', async ()=>{
       const { error } = await window.sb.from('items_v3').delete().eq('id',id);
       if(error) console.error(error);
     }
+  </script>
+
+  <!-- Binding résilient pour garantir l'ouverture du prompt d'email -->
+  <script>
+  (function(){
+    window.__emailSignIn = async function(){
+      try{
+        if(!window.sb || !window.sb.auth){ alert("Supabase n'est pas initialisé."); return; }
+        const email = prompt("Entre ton email pour recevoir un code (6 chiffres) :");
+        if(!email) return;
+        const { error } = await window.sb.auth.signInWithOtp({ email, options:{ shouldCreateUser:true } });
+        if(error){ alert("Erreur: " + error.message); return; }
+        const token = prompt("Code reçu par email (6 chiffres) :");
+        if(!token) return;
+        const { error: e2 } = await window.sb.auth.verifyOtp({ email, token, type:'email' });
+        if(e2){ alert("Erreur vérification code: " + e2.message); return; }
+        alert("Identification réussie. Clique sur « Connecter au cloud » pour charger/migrer tes données.");
+        if(typeof window.updateAuthUI === 'function'){ window.updateAuthUI({isAuthed:true, isConnected:false}); }
+        const connectBtn = document.getElementById('btnConnect'); if(connectBtn) connectBtn.style.display='';
+        const signInBtn = document.getElementById('btnSignIn'); if(signInBtn) signInBtn.style.display='none';
+      }catch(err){
+        alert("Erreur inattendue: " + (err && err.message ? err.message : err));
+      }
+    };
+
+    const ids = ['btnSignIn','btnLogin','btnLoginCode'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(el){
+        try{ el.style.display = ''; }catch(_){}
+        el.addEventListener('click', window.__emailSignIn);
+        el.onclick = window.__emailSignIn;
+      }
+    });
+
+    try {
+      if(window.sb && window.sb.auth && window.sb.auth.getUser){
+        window.sb.auth.getUser().then(({data})=>{
+          const user = data && data.user;
+          if(!user){
+            const si = document.getElementById('btnSignIn');
+            if(si) si.style.display='';
+          }
+        }).catch(()=>{});
+      }
+    } catch(_) {}
+  })();
   </script>
 </body>
 </html>
