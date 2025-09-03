@@ -28,23 +28,29 @@
     .row{display:flex;gap:.5rem;flex-wrap:wrap}.row>*{flex:1 1 220px}
     .list{max-height:420px;overflow:auto}
     .pill{display:inline-flex;align-items:center;gap:.5ch;background:#102038;border:1px solid #223352;border-radius:999px;padding:.35rem .6rem}
-    .muted{color:#a6b0c3}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:#0b1220;border:1px solid #223352;border-radius:8px;padding:.15rem .4rem}
-    .sep{height:1px;background:#1e293b;margin:.75rem 0}
-    .hint{font-size:.9rem;color:#a6b0c3}
-    .empty{opacity:.7;font-style:italic}
+    .muted{color:var(--muted)}
+    .hidden{display:none}
     table{width:100%;border-collapse:collapse}
     th,td{border:1px solid #223352;padding:.5rem;text-align:left}
     th{background:#0f172a}
     .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #223352;background:#0f172a;font-size:.85rem}
   </style>
+
+  <!-- Supabase (CDN) + config intégrée : REMPLACE ICI tes 2 valeurs -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    /* ========= REMPLACE ICI ========= */
+    const SUPABASE_URL = "https://smxqtzbqachmzefyjpuj.supabase.co";       /* <-- remplace */
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";                 /* <-- remplace */
+    /* ================================= */
+    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const REDIRECT_URL = "https://planning-revisions.vercel.app"; /* redirection forcée si besoin un jour */
+  </script>
 </head>
 <body>
   <header>
-    <nav>
-      <strong>📚 Planning de Révisions</strong>
-      <a href="#" data-tab="home" aria-current="page">Accueil</a>
+    <nav aria-label="Onglets">
+      <a href="#" data-tab="accueil" aria-current="page">Accueil</a>
       <a href="#" data-tab="saisies">Saisies du jour</a>
       <a href="#" data-tab="planning">Planning à 5 jours</a>
       <a href="#" data-tab="agenda">Agenda</a>
@@ -60,53 +66,76 @@
 
   <main>
     <!-- ACCUEIL -->
-    <section class="tab active" id="home">
+    <section class="tab active" id="accueil">
       <div class="grid">
         <div class="card">
-          <h2>Bienvenue 👋</h2>
-          <p>Planifie et revois efficacement tes cours. En local par défaut, connexion cloud optionnelle via Supabase.</p>
-          <div class="sep"></div>
-          <p class="hint">Astuce : utilise <span class="kbd">Ctrl</span> + <span class="kbd">S</span> pour enregistrer rapidement.</p>
-        </div>
-        <div class="card">
-          <h2>Synchronisation</h2>
-          <p><span class="badge">Local</span> → fonctionne hors-ligne. <span class="badge">Cloud</span> → sauvegarde et synchro multi-appareils.</p>
-          <ul>
-            <li><strong>S’identifier</strong> : se reconnaître via email (OTP).</li>
-            <li><strong>Connecter au cloud</strong> : charge tes données en ligne et, si vide, migre les données locales.</li>
-            <li><strong>Se déconnecter</strong> : revient au mode local et ferme la session.</li>
-          </ul>
+          <h2>Bonjour Octave</h2>
+          <p class="muted">Bienvenue — musique du jour.</p>
+          <h3>🎵 Musique</h3>
+          <iframe title="Lecteur Deezer" scrolling="no" allowtransparency="true"
+            src="https://www.deezer.com/plugins/player?format=classic&autoplay=false&playlist=true&width=700&height=350&color=007FEB&layout=dark&size=medium&type=tracks&id=3135556&app_id=1"
+            height="100"></iframe>
         </div>
       </div>
     </section>
 
     <!-- SAISIES -->
     <section class="tab" id="saisies">
-      <div class="grid">
-        <div class="card">
-          <h2>Nouvelle saisie</h2>
-          <div class="row">
-            <input id="inputTitre" placeholder="Titre">
-            <select id="inputMatiere"></select>
-          </div>
-          <div class="row">
-            <input id="inputDate" type="date">
-            <select id="inputJalons">
-              <option value="0">J+0</option><option value="1">J+1</option><option value="3">J+3</option><option value="7">J+7</option><option value="15">J+15</option><option value="30">J+30</option>
-            </select>
-          </div>
-          <textarea id="inputNotes" placeholder="Notes"></textarea>
-          <div class="row">
-            <button id="btnAdd">Ajouter</button>
-            <button id="btnExport" class="secondary" type="button">Exporter (.json)</button>
-            <input id="fileImport" type="file" accept=".json" style="display:none">
-            <button id="btnImport" class="secondary" type="button">Importer (.json)</button>
-          </div>
+      <div class="card">
+        <h2>Saisies du jour</h2>
+        <div class="row">
+          <select id="typeSelect" aria-label="Type">
+            <option value="revision">Révision</option>
+            <option value="devoir_rendre">Devoir à rendre</option>
+            <option value="devoir_preparer">Devoir à préparer</option>
+            <option value="lecture">Lecture</option>
+          </select>
+          <select id="matiereSelect" aria-label="Matière"></select>
+          <input id="titreInput" placeholder="Titre (ex. DM fonctions / Lecture Candide)" />
         </div>
-        <div class="card">
-          <h2>Liste</h2>
-          <div class="list" id="listItems"></div>
+
+        <div class="row">
+          <textarea id="descriptionInput" placeholder="Description / consignes / notes..."></textarea>
         </div>
+
+        <!-- Spécifiques par type -->
+        <div id="formRevision" class="row">
+          <input id="dateRevision" type="date" aria-label="Date de révision" />
+          <div class="pill">Jalons: 0,1,3,7,15,30 jours</div>
+        </div>
+
+        <div id="formRendre" class="row hidden">
+          <input id="echeanceRendre" type="date" aria-label="Échéance" />
+          <select id="prioriteRendre">
+            <option value="1">Priorité normale</option>
+            <option value="2">Haute</option>
+            <option value="0">Basse</option>
+          </select>
+          <input id="progressRendre" type="number" min="0" max="100" value="0" aria-label="Progression (%)" />
+        </div>
+
+        <div id="formPreparer" class="row hidden">
+          <input id="echeancePreparer" type="date" aria-label="Échéance" />
+          <input id="dureeTotale" type="number" min="0" step="15" placeholder="Durée totale (min)" />
+          <input id="dureeSession" type="number" min="0" step="5" placeholder="Durée par session (min)" />
+        </div>
+
+        <div id="formLecture" class="row hidden">
+          <input id="ouvrageTitre" placeholder="Titre de l’ouvrage" />
+          <input id="ouvrageAuteur" placeholder="Auteur" />
+          <input id="chapitresTotal" type="number" min="1" step="1" placeholder="Nombre de chapitres" />
+        </div>
+
+        <div class="row">
+          <button id="btnAjouter">Ajouter</button>
+          <button id="btnExport" class="secondary" type="button">Exporter (.json)</button>
+          <input id="fileImport" type="file" accept=".json" style="display:none">
+          <button id="btnImport" class="secondary" type="button">Importer (.json)</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Liste</h2>
+        <div id="listeItems" class="list"></div>
       </div>
     </section>
 
@@ -114,7 +143,7 @@
     <section class="tab" id="planning">
       <div class="card">
         <h2>Planning à 5 jours</h2>
-        <div id="planningList"></div>
+        <div id="planningList" class="grid" style="grid-template-columns: repeat(5, 1fr)"></div>
       </div>
     </section>
 
@@ -122,8 +151,11 @@
     <section class="tab" id="agenda">
       <div class="card">
         <h2>Agenda</h2>
+        <div class="row">
+          <input id="rechercheAgenda" placeholder="Rechercher dans l’agenda..." />
+        </div>
         <table id="agendaTable">
-          <thead><tr><th>Date</th><th>Titre</th><th>Matière</th></tr></thead>
+          <thead><tr><th>Date</th><th>Titre</th><th>Matière</th><th>Détails</th><th>%</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -134,43 +166,39 @@
       <div class="card">
         <h2>Matières</h2>
         <div class="row">
-          <input id="inputNewMatiere" placeholder="Ajouter une matière">
-          <button id="btnAddMatiere">Ajouter</button>
+          <input id="nouvelleMatiere" placeholder="Nouvelle matière" type="text" />
+          <button id="btnAjouterMatiere" type="button">Ajouter</button>
         </div>
-        <div id="matieresList" class="list"></div>
+        <ul id="listeMatieres" class="list"></ul>
       </div>
     </section>
   </main>
 
+  <!-- Template pour un item -->
   <template id="tplItem">
     <div class="card">
       <div class="row">
-        <input class="eTitre" placeholder="Titre">
+        <select class="eType">
+          <option value="revision">Révision</option>
+          <option value="devoir_rendre">Devoir à rendre</option>
+          <option value="devoir_preparer">Devoir à préparer</option>
+          <option value="lecture">Lecture</option>
+        </select>
         <select class="eMatiere"></select>
       </div>
       <div class="row">
-        <input class="eDate" type="date">
-        <select class="eJalons">
-          <option value="0">J+0</option><option value="1">J+1</option><option value="3">J+3</option><option value="7">J+7</option><option value="15">J+15</option><option value="30">J+30</option>
-        </select>
+        <input class="eTitre" placeholder="Titre">
+        <input class="eDate" type="date" />
       </div>
-      <textarea class="eNotes" placeholder="Notes"></textarea>
+      <textarea class="eDescription" placeholder="Description / notes"></textarea>
       <div class="row">
         <button class="primary eSave" type="button">Enregistrer</button>
         <button class="secondary eDup" type="button">Dupliquer</button>
-        <button class="danger eDel" type="button">Supprimer</button>
+        <button data-pluschap class="secondary hidden" type="button">+1 chapitre lu</button>
+        <button data-delete class="danger" type="button">Supprimer</button>
       </div>
     </div>
   </template>
-
-  <script>
-    /* ========= REMPLACE ICI ========= */
-    const SUPABASE_URL = "https://smxqtzbqachmzefyjpuj.supabase.co";       /* <-- remplace */
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";                 /* <-- remplace */
-    /* ================================= */
-    window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const REDIRECT_URL = "https://planning-revisions.vercel.app"; /* redirection forcée */
-  </script>
 
   <script>
     /* ===================== UTILITAIRES ===================== */
@@ -180,7 +208,8 @@
     const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
     const isoDate=d=>d.toISOString().slice(0,10);
     const todayIso=()=>isoDate(new Date());
-    const escapeHtml=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    // XSS minimal
+    const esc=(str='')=>str.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
     /* ===================== STORE LOCAL ===================== */
     const store={
@@ -190,37 +219,134 @@
       set items(v){localStorage.setItem('items_v3',JSON.stringify(v))}
     };
 
-    // Migration éventuelle depuis ancien stockage
-    (()=>{ if(localStorage.getItem('matieres')){ store.matieres=[...new Set([...store.matieres, ...JSON.parse(localStorage.getItem('matieres')||'[]')])]; localStorage.removeItem('matieres'); } })();
-
     /* ===================== NAVIGATION ===================== */
     const tabs=[...document.querySelectorAll('.tab')];
     function showTab(id){ tabs.forEach(t=>t.classList.toggle('active',t.id===id)); document.querySelectorAll('nav a[data-tab]').forEach(a=>a.setAttribute('aria-current', a.dataset.tab===id?'page':null)); }
     document.querySelectorAll('nav a[data-tab]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showTab(a.dataset.tab)}));
 
     /* ===================== MATIERES ===================== */
-    const elMatSel=()=>[...document.querySelectorAll('select.eMatiere, #inputMatiere')];
-    function renderMatieres(){ const opts=store.matieres.map(m=>`<option>${escapeHtml(m)}</option>`).join(''); elMatSel().forEach(s=>s.innerHTML=opts); }
-    document.getElementById('btnAddMatiere').addEventListener('click',()=>{ const v=document.getElementById('inputNewMatiere').value.trim(); if(!v) return; store.matieres=[...store.matieres,v]; document.getElementById('inputNewMatiere').value=''; renderMatieres(); });
+    function renderMatieres(){
+      const ul=document.getElementById('listeMatieres'); ul.innerHTML='';
+      store.matieres.forEach(m=>{
+        const li=document.createElement('li'); li.textContent=m; ul.appendChild(li);
+      });
+      const opts=store.matieres.map(m=>`<option>${esc(m)}</option>`).join('');
+      document.getElementById('matiereSelect').innerHTML=opts;
+      document.querySelectorAll('.eMatiere').forEach(s=>s.innerHTML=opts);
+    }
+    document.getElementById('btnAjouterMatiere').addEventListener('click',()=>{
+      const v=document.getElementById('nouvelleMatiere').value.trim(); if(!v) return;
+      if(!store.matieres.includes(v)) store.matieres=[...store.matieres,v];
+      document.getElementById('nouvelleMatiere').value='';
+      renderMatieres();
+    });
 
     /* ===================== ITEMS CRUD (LOCAL) ===================== */
-    const list=document.getElementById('listItems');
+    const els={
+      typeSelect:document.getElementById('typeSelect'),
+      matiereSelect:document.getElementById('matiereSelect'),
+      titreInput:document.getElementById('titreInput'),
+      descriptionInput:document.getElementById('descriptionInput'),
+      dateRevision:document.getElementById('dateRevision'),
+      echeanceRendre:document.getElementById('echeanceRendre'),
+      prioriteRendre:document.getElementById('prioriteRendre'),
+      progressRendre:document.getElementById('progressRendre'),
+      echeancePreparer:document.getElementById('echeancePreparer'),
+      dureeTotale:document.getElementById('dureeTotale'),
+      dureeSession:document.getElementById('dureeSession'),
+      ouvrageTitre:document.getElementById('ouvrageTitre'),
+      ouvrageAuteur:document.getElementById('ouvrageAuteur'),
+      chapitresTotal:document.getElementById('chapitresTotal'),
+      listeItems:document.getElementById('listeItems'),
+      planningList:document.getElementById('planningList'),
+      agendaTable:document.querySelector('#agendaTable tbody'),
+      rechercheAgenda:document.getElementById('rechercheAgenda')
+    };
+
+    // switch des formulaires selon type
+    els.typeSelect.addEventListener('change',()=>{
+      document.getElementById('formRevision').classList.toggle('hidden', els.typeSelect.value!=='revision');
+      document.getElementById('formRendre').classList.toggle('hidden', els.typeSelect.value!=='devoir_rendre');
+      document.getElementById('formPreparer').classList.toggle('hidden', els.typeSelect.value!=='devoir_preparer');
+      document.getElementById('formLecture').classList.toggle('hidden', els.typeSelect.value!=='lecture');
+    });
+
     function row(it){
       const tpl=document.getElementById('tplItem').content.cloneNode(true);
+      const eType=tpl.querySelector('.eType'); eType.value=it.type||'revision';
+      const eMat=tpl.querySelector('.eMatiere'); eMat.innerHTML=store.matieres.map(m=>`<option>${esc(m)}</option>`).join(''); eMat.value=it.matiere||store.matieres[0];
       tpl.querySelector('.eTitre').value=it.titre||'';
-      tpl.querySelector('.eMatiere').value=it.matiere||store.matieres[0];
-      tpl.querySelector('.eDate').value=it.date||todayIso();
-      tpl.querySelector('.eJalons').value=(it.jalon||0);
-      tpl.querySelector('.eNotes').value=it.notes||'';
-      tpl.querySelector('.eSave').addEventListener('click',()=>updateItem(it.id,{ titre:tpl.querySelector('.eTitre').value.trim(), matiere:tpl.querySelector('.eMatiere').value, date:tpl.querySelector('.eDate').value, jalon:+tpl.querySelector('.eJalons').value, notes:tpl.querySelector('.eNotes').value.trim() }));
-      tpl.querySelector('.eDup').addEventListener('click',()=>addItem({ ...it, id:crypto.randomUUID(), titre:(it.titre||'')+' (copie)' }));
-      tpl.querySelector('.eDel').addEventListener('click',()=>deleteItem(it.id));
+      tpl.querySelector('.eDate').value=it.baseDate||it.echeance||todayIso();
+      tpl.querySelector('.eDescription').value=it.description||'';
+      const plusChapBtn=tpl.querySelector('[data-pluschap]');
+      if(it.type==='lecture') plusChapBtn.classList.remove('hidden');
+      plusChapBtn?.addEventListener('click',()=>{
+        it.lus = Number(it.lus||0)+1;
+        updateItem(it.id,{ lus: it.lus });
+      });
+      tpl.querySelector('.eSave').addEventListener('click',()=>{
+        const patch={ type:eType.value, matiere:eMat.value,
+          titre: tpl.querySelector('.eTitre').value.trim(),
+          description: tpl.querySelector('.eDescription').value.trim()
+        };
+        if(patch.type==='revision') patch.baseDate=tpl.querySelector('.eDate').value;
+        if(patch.type==='devoir_rendre') patch.echeance=tpl.querySelector('.eDate').value;
+        if(patch.type==='devoir_preparer') patch.echeance=tpl.querySelector('.eDate').value;
+        if(patch.type==='lecture') patch.echeance=tpl.querySelector('.eDate').value;
+        updateItem(it.id, patch);
+      });
+      tpl.querySelector('[data-delete]').addEventListener('click',()=>deleteItem(it.id));
       return tpl;
     }
-    function renderItems(){ list.innerHTML=''; (store.items||[]).forEach(it=>list.appendChild(row(it))); }
-    function addItem(obj){ const it={ id:obj.id||crypto.randomUUID(), titre:obj.titre||'', matiere:obj.matiere||store.matieres[0], date:obj.date||todayIso(), jalon:obj.jalon||0, notes:obj.notes||'' }; store.items=[...store.items, it]; renderItems(); renderPlanning(); renderAgenda(); }
+
+    function renderItems(){ els.listeItems.innerHTML=''; (store.items||[]).forEach(it=>els.listeItems.appendChild(row(it))); }
+
+    function addItem(obj){
+      const type=els.typeSelect.value;
+      const matiere=els.matiereSelect.value || store.matieres[0];
+      const titre=els.titreInput.value.trim();
+      const description=els.descriptionInput.value.trim();
+      let payload={id:crypto.randomUUID(),type,matiere,titre,description,dateCreation:Date.now(),etat:'a_faire'};
+
+      if(type==='revision'){
+        const baseDate=els.dateRevision.value; if(!baseDate) return alert('Date requise.');
+        payload={...payload,baseDate,jalons:[...JALONS]};
+      }
+      if(type==='devoir_rendre'){
+        const echeance=els.echeanceRendre.value; if(!echeance) return alert('Échéance requise.');
+        payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:0};
+      }
+      if(type==='devoir_preparer'){
+        const echeance=els.echeancePreparer.value; if(!echeance) return alert('Échéance requise.');
+        const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.');
+        const dureeSession=Number(els.dureeSession.value||0) || 25;
+        // Sessions générées jusqu’à l’échéance
+        const sessions=[]; let cumul=0; let cursor=toLocalDate(todayIso());
+        while(cumul<dureeTotale){
+          sessions.push({date:isoDate(cursor),duree:Math.min(dureeSession,dureeTotale-cumul),fait:false});
+          cursor=addDays(cursor,1); cumul+=dureeSession;
+        }
+        payload={...payload,echeance,dureeTotale,dureeSession,sessions,progress:0};
+      }
+      if(type==='lecture'){
+        const echeance=todayIso();
+        const chapitres=Number(els.chapitresTotal.value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
+        const ouvrage={titre:els.ouvrageTitre.value.trim(),auteur:els.ouvrageAuteur.value.trim(),chapitres};
+        // Répartition lecture: 1 chapitre/jour par défaut
+        const repartition=[]; let cursor=toLocalDate(todayIso());
+        for(let i=1;i<=chapitres;i++){ repartition.push({date:isoDate(cursor),chapitres:`Chapitre ${i}`}); cursor=addDays(cursor,1);}
+        payload={...payload,echeance,ouvrage,repartition,lus:0};
+      }
+
+      store.items=[...store.items, payload];
+      els.titreInput.value=''; els.descriptionInput.value='';
+      renderItems(); renderPlanning(); renderAgenda();
+    }
+
     function updateItem(id,patch){ store.items=store.items.map(it=>it.id===id?{...it,...patch}:it); renderItems(); renderPlanning(); renderAgenda(); }
     function deleteItem(id){ store.items=store.items.filter(it=>it.id!==id); renderItems(); renderPlanning(); renderAgenda(); }
+
+    document.getElementById('btnAjouter').addEventListener('click',addItem);
 
     /* ===================== EXPORT / IMPORT ===================== */
     document.getElementById('btnExport').addEventListener('click',()=>{
@@ -242,10 +368,99 @@
     });
 
     /* ===================== INITIALISATION ===================== */
-    function refreshAll(){ renderItems(); renderPlanning(); renderAgenda(); renderMatieres(); }
-    renderMatieres(); refreshAll();
+    function refreshAll(){ renderMatieres(); renderItems(); renderPlanning(); renderAgenda(); }
+    refreshAll();
 
-    /* ===================== AUTH & SYNC SUPABASE ===================== */
+    /* ===================== AGENDA / PLANNING ===================== */
+    function percentFor(it){
+      if(it.type==='lecture'){ const tot=Number(it.ouvrage?.chapitres||0); return !tot?0:Math.round(100*(Number(it.lus||0)/tot)); }
+      if(it.type==='devoir_preparer'){ const tot=Number(it.dureeTotale||0); const fait=(it.sessions||[]).filter(s=>s.fait).reduce((a,b)=>a+b.duree,0); return !tot?0:Math.round(100*fait/tot); }
+      return Number(it.progress||0);
+    }
+
+    function renderPlanning(){
+      const root=els.planningList; root.innerHTML='';
+      const base=new Date(); base.setHours(0,0,0,0);
+      for(let i=0;i<5;i++){
+        const d=new Date(base); d.setDate(base.getDate()+i);
+        const iso=isoDate(d);
+        const col=document.createElement('div'); col.className='planning-col';
+        col.innerHTML=`<h3>${fmtDateLabel(d)}</h3>`;
+        root.appendChild(col);
+      }
+      const itemsByDate={};
+
+      // Révisions
+      store.items.filter(i=>i.type==='revision').forEach(r=>{
+        const base=toLocalDate(r.baseDate);
+        r.jalons.forEach((j,idx)=>{
+          const d=isoDate(addDays(base,j));
+          (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:r.description, prog:Math.round(((idx+1)/r.jalons.length)*100)});
+        });
+      });
+      // Préparer
+      store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
+        (p.sessions||[]).forEach(s=>{ (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
+        (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
+      });
+      // Rendre
+      store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
+        (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
+      });
+      // Lecture
+      store.items.filter(i=>i.type==='lecture').forEach(le=>{
+        (le.repartition||[]).forEach(part=>{ (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
+      });
+
+      // Rendu colonnes
+      [...root.querySelectorAll('.planning-col')].forEach((col,idx)=>{
+        const d=isoDate(addDays(new Date(), idx));
+        const items=itemsByDate[d]||[];
+        if(!items.length){ col.innerHTML += `<div class="muted">Rien de prévu.</div>`; return; }
+        col.innerHTML += items.map(it=>`<div class="pill"><strong>${esc(it.titre)}</strong> — ${esc(it.matiere)} <span class="muted">· ${esc(it.desc||'')}</span> <span class="muted">· ${it.prog}%</span></div>`).join('<br>');
+      });
+    }
+
+    function renderAgenda(){
+      const tbody=els.agendaTable; tbody.innerHTML='';
+      const byDate={};
+      // Révisions
+      store.items.filter(i=>i.type==='revision').forEach(r=>{
+        const base=toLocalDate(r.baseDate);
+        r.jalons.forEach((j,idx)=>{
+          const d=isoDate(addDays(base,j));
+          (byDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/r.jalons.length)*100)});
+        });
+      });
+      // Préparer
+      store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
+        (p.sessions||[]).forEach(s=>{ (byDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
+        (byDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
+      });
+      // Rendre
+      store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
+        (byDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
+      });
+      // Lecture
+      store.items.filter(i=>i.type==='lecture').forEach(le=>{
+        (le.repartition||[]).forEach(part=>{ (byDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
+      });
+
+      const q=els.rechercheAgenda.value.trim().toLowerCase();
+      const rows=[];
+      Object.keys(byDate).sort().forEach(date=>{
+        (byDate[date]||[]).forEach(it=>{
+          const line=[date,it.titre,it.matiere,it.desc, String(it.prog)];
+          if(!q || line.join(' ').toLowerCase().includes(q)){
+            rows.push(`<tr><td>${esc(date)}</td><td>${esc(it.titre)}</td><td>${esc(it.matiere)}</td><td>${esc(it.desc||'')}</td><td>${it.prog}%</td></tr>`);
+          }
+        });
+      });
+      tbody.innerHTML=rows.join('');
+    }
+    els.rechercheAgenda.addEventListener('input', renderAgenda);
+
+    /* ===================== AUTH & SYNC SUPABASE (modifié SEULEMENT ici) ===================== */
     const btnSignIn=document.getElementById('btnSignIn');
     const btnConnect=document.getElementById('btnConnect');
     const btnLogout=document.getElementById('btnLogout');
@@ -334,47 +549,7 @@
       updateAuthUI({isAuthed, isConnected});
     });
 
-    /* ===================== PLAN / AGENDA ===================== */
-    function renderPlanning(){
-      const root=document.getElementById('planningList'); root.innerHTML='';
-      const base=new Date(); base.setHours(0,0,0,0);
-      for(let i=0;i<5;i++){
-        const d=new Date(base); d.setDate(base.getDate()+i);
-        const iso=isoDate(d);
-        const items=(store.items||[]).filter(it=>it.date===iso);
-        const card=document.createElement('div'); card.className='card';
-        card.innerHTML=`<h3>${fmtDateLabel(d)}</h3>` + (items.length? items.map(it=>`<div class="pill"><strong>${escapeHtml(it.titre)}</strong> — ${escapeHtml(it.matiere)}</div>`).join('<br>') : `<div class="empty">Rien de prévu.</div>`);
-        root.appendChild(card);
-      }
-    }
-
-    function renderAgenda(){
-      const tbody=document.querySelector('#agendaTable tbody'); tbody.innerHTML='';
-      (store.items||[]).sort((a,b)=>a.date.localeCompare(b.date)).forEach(it=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${escapeHtml(it.date)}</td><td>${escapeHtml(it.titre)}</td><td>${escapeHtml(it.matiere)}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Entrées
-    document.getElementById('btnAdd').addEventListener('click',()=>{
-      const titre=document.getElementById('inputTitre').value.trim();
-      const matiere=document.getElementById('inputMatiere').value;
-      const date=document.getElementById('inputDate').value || todayIso();
-      const jalon=+document.getElementById('inputJalons').value;
-      const notes=document.getElementById('inputNotes').value.trim();
-      addItem({ titre, matiere, date, jalon, notes });
-      document.getElementById('inputTitre').value='';
-      document.getElementById('inputNotes').value='';
-    });
-
-    // Mise à jour sélecteur matières initial
-    (function initMatiereSelect(){ const sel=document.getElementById('inputMatiere'); sel.innerHTML=store.matieres.map(m=>`<option>${escapeHtml(m)}</option>`).join(''); })();
-
-    // Export/Import déjà câblés plus haut
-
-    /* ===================== CLOUD WRAPPERS ===================== */
+    /* ===================== WRAPPERS CLOUD ===================== */
     const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
     addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
     updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
