@@ -34,6 +34,10 @@
     th,td{border:1px solid #223352;padding:.5rem;text-align:left;vertical-align:top}
     th{background:#0f172a}
     .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #223352;background:#0f172a;font-size:.85rem}
+
+    /* Highlight pour "Aujourd'hui" */
+    tr.flash td{ animation: flashBg 1.5s ease; }
+    @keyframes flashBg{ 0%{background:#1f2937;} 100%{background:transparent;} }
   </style>
 
   <!-- Supabase (CDN) -->
@@ -44,6 +48,15 @@
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNteHF0emJxYWNobXplZnlqcHVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTY5ODMsImV4cCI6MjA3MjM3Mjk4M30.F2X2j_YqSlvMwr8Pa9PzFt3p0c4LlrBCE95FkyFUwVc";                 /* <-- remplace */
     /* ================================= */
     window.sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* NOTE important (côté projet Supabase, pas dans ce fichier) :
+       - Activer Realtime sur la table public.items_v3
+       - Avoir une policy RLS SELECT :  USING (owner_id = auth.uid())
+       - S'assurer que la table est dans la publication supabase_realtime
+       SQL utile :
+         create policy "can select own items" on public.items_v3 for select using (owner_id = auth.uid());
+         alter publication supabase_realtime add table public.items_v3;
+    */
   </script>
 </head>
 <body>
@@ -165,10 +178,12 @@
         <h2>Agenda</h2>
         <div class="row">
           <input id="rechercheAgenda" placeholder="Rechercher dans l’agenda..." />
+          <button id="btnGoToday" type="button" class="secondary" style="max-width:180px">Aujourd’hui</button>
         </div>
         <table id="agendaTable">
           <thead><tr><th>Date</th><th>Titre</th><th>Matière</th><th>Détails</th><th>%</th></tr></thead>
-        <tbody></tbody></table>
+          <tbody></tbody>
+        </table>
       </div>
     </section>
 
@@ -248,7 +263,7 @@
       document.getElementById('nouvelleMatiere').value=''; renderMatieres();
     });
 
-    /* ===================== ITEMS CRUD (LOCAL) ===================== */
+    /* ===================== ITEMS CRUD (LOCAL + auto-push si identifié) ===================== */
     const els={
       typeSelect:document.getElementById('typeSelect'),
       matiereSelect:document.getElementById('matiereSelect'),
@@ -268,16 +283,9 @@
       planningHeader:document.getElementById('planningHeader'),
       planningRow:document.getElementById('planningRow'),
       agendaTable:document.querySelector('#agendaTable tbody'),
-      rechercheAgenda:document.getElementById('rechercheAgenda')
+      rechercheAgenda:document.getElementById('rechercheAgenda'),
+      btnGoToday:document.getElementById('btnGoToday')
     };
-
-    document.getElementById('typeSelect').addEventListener('change',(e)=>{
-      const t=e.target.value;
-      document.getElementById('formRevision').classList.toggle('hidden', t!=='revision');
-      document.getElementById('formRendre').classList.toggle('hidden', t!=='devoir_rendre');
-      document.getElementById('formPreparer').classList.toggle('hidden', t!=='devoir_preparer');
-      document.getElementById('formLecture').classList.toggle('hidden', t!=='lecture');
-    });
 
     function row(it){
       const tpl=document.getElementById('tplItem').content.cloneNode(true);
@@ -305,6 +313,10 @@
     }
 
     function renderItems(){ els.listeItems.innerHTML=''; (store.items||[]).forEach(it=>els.listeItems.appendChild(row(it))); }
+
+    async function isAuthed(){
+      try{ const { data:{ user } } = await window.sb.auth.getUser(); return !!user; }catch{ return false; }
+    }
 
     function addItem(){
       const type=els.typeSelect.value;
@@ -334,8 +346,8 @@
       }
       if(type==='lecture'){
         const echeance=todayIso();
-        const chapitres=Number(document.getElementById('chapitresTotal').value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
-        const ouvrage={titre:document.getElementById('ouvrageTitre').value.trim(),auteur:document.getElementById('ouvrageAuteur').value.trim(),chapitres};
+        const chapitres=Number(els.chapitresTotal.value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
+        const ouvrage={titre:els.ouvrageTitre.value.trim(),auteur:els.ouvrageAuteur.value.trim(),chapitres};
         const repartition=[]; let cursor=toLocalDate(todayIso());
         for(let i=1;i<=chapitres;i++){ repartition.push({date:isoDate(cursor),chapitres:`Chapitre ${i}`}); cursor=addDays(cursor,1);}
         payload={...payload,echeance,ouvrage,repartition,lus:0};
@@ -344,10 +356,26 @@
       store.items=[...store.items, payload];
       els.titreInput.value=''; els.descriptionInput.value='';
       renderItems(); renderPlanning(); renderAgenda();
+
+      // Auto-push si identifié
+      isAuthed().then(ok=>{ if(ok) upsertCloud([payload]); });
     }
 
-    function updateItem(id,patch){ store.items=store.items.map(it=>it.id===id?{...it,...patch}:it); renderItems(); renderPlanning(); renderAgenda(); }
-    function deleteItem(id){ store.items=store.items.filter(it=>it.id!==id); renderItems(); renderPlanning(); renderAgenda(); }
+    function updateItem(id,patch){
+      store.items=store.items.map(it=>it.id===id?{...it,...patch}:it);
+      renderItems(); renderPlanning(); renderAgenda();
+      // Auto-push si identifié
+      const it=store.items.find(i=>i.id===id);
+      isAuthed().then(ok=>{ if(ok && it) upsertCloud([it]); });
+    }
+
+    function deleteItem(id){
+      const it = store.items.find(i=>i.id===id);
+      store.items=store.items.filter(i=>i.id!==id);
+      renderItems(); renderPlanning(); renderAgenda();
+      // Auto-push si identifié
+      isAuthed().then(ok=>{ if(ok && it) deleteCloud(id); });
+    }
 
     document.getElementById('btnAjouter').addEventListener('click',addItem);
 
@@ -460,7 +488,29 @@
     }
     els.rechercheAgenda.addEventListener('input', renderAgenda);
 
-    /* ===================== AUTH & SYNC SUPABASE (magic link ONLY) ===================== */
+    // Bouton "Aujourd’hui" — scroll + highlight
+    function goToday(){
+      const tbody = els.agendaTable;
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      if(!rows.length) return;
+
+      const today = todayIso();
+      let target = rows.find(r => (r.children[0]?.textContent||'').trim() === today);
+
+      // si pas de ligne pour aujourd’hui, prendre la prochaine date future
+      if(!target){
+        target = rows.find(r => (r.children[0]?.textContent||'') >= today) || rows[rows.length-1];
+      }
+      if(target){
+        rows.forEach(r=>r.classList.remove('flash'));
+        target.scrollIntoView({behavior:'smooth', block:'center'});
+        target.classList.add('flash');
+        setTimeout(()=>target.classList.remove('flash'), 1600);
+      }
+    }
+    els.btnGoToday.addEventListener('click', goToday);
+
+    /* ===================== AUTH & SYNC SUPABASE (magic link ONLY + Realtime) ===================== */
     const btnSignIn=document.getElementById('btnSignIn');
     const btnConnect=document.getElementById('btnConnect');
     const btnLogout=document.getElementById('btnLogout');
@@ -479,11 +529,12 @@
       if(!user) return;
       if(window.itemsChannel){ try{ await window.sb.removeChannel(window.itemsChannel); }catch{} }
       window.itemsChannel = window.sb
-        .channel('realtime:items_v3')
+        .channel('realtime:public:items_v3')
         .on('postgres_changes',{
           event:'*', schema:'public', table:'items_v3',
           filter:`owner_id=eq.${user.id}`
         }, (payload)=>{
+          // console.log('[RT]', payload.eventType, payload);
           const ev = payload.eventType;
           if(ev==='INSERT' || ev==='UPDATE'){
             const it = payload.new?.data; if(!it?.id) return;
@@ -495,7 +546,7 @@
           }
           renderItems(); renderPlanning(); renderAgenda();
         })
-        .subscribe((status)=>{ /* optional: console.log('Realtime status', status) */ });
+        .subscribe((status)=>{ /* console.log('[RT status]', status); */ });
     }
     async function disableRealtime(){
       if(window.itemsChannel){ try{ await window.sb.removeChannel(window.itemsChannel); }catch{} window.itemsChannel=null; }
@@ -559,14 +610,14 @@
       await ensureProfile(user);
       await maybeMigrateLocalToCloud(user);
       await loadFromCloud(user);
-      await enableRealtime(user); // ⬅️ realtime activé après connexion
+      await enableRealtime(user);
       mode='cloud';
       updateAuthUI({isAuthed:true, isConnected:true});
       alert("Connecté au cloud.");
     });
     btnLogout?.addEventListener('click', async ()=>{
       mode='local';
-      await disableRealtime(); // ⬅️ coupe le realtime à la déconnexion
+      await disableRealtime();
       await window.sb.auth.signOut();
       updateAuthUI({isAuthed:false, isConnected:false});
       alert("Déconnecté.");
@@ -579,11 +630,7 @@
       if(isAuthed){ await enableRealtime(user); } else { await disableRealtime(); }
     });
 
-    /* ===================== WRAPPERS CLOUD ===================== */
-    const _addItem=addItem, _updateItem=updateItem, _deleteItem=deleteItem;
-    addItem=(obj)=>{ _addItem(obj); if(mode==='cloud') upsertCloud([obj]); };
-    updateItem=(id,patch)=>{ _updateItem(id,patch); if(mode==='cloud'){ const it=store.items.find(i=>i.id===id); if(it) upsertCloud([it]); } };
-    deleteItem=(id)=>{ const it=store.items.find(i=>i.id===id); _deleteItem(id); if(mode==='cloud'&&it) deleteCloud(id); };
+    /* ===================== Cloud helpers ===================== */
     async function upsertCloud(items){
       const { data:{ user } } = await window.sb.auth.getUser();
       if(!user) return;
