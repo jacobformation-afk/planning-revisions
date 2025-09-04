@@ -126,7 +126,8 @@
         </div>
 
         <div id="formRendre" class="row hidden">
-          <input id="echeanceRendre" type="date" aria-label="Échéance" />
+          <input id="echeanceRendre" type="date" aria-label="Échéance (ex. date de rendu)" />
+          <input id="dateDevoirRendre" type="date" aria-label="Date du devoir" />
           <select id="prioriteRendre">
             <option value="1">Priorité normale</option>
             <option value="2">Haute</option>
@@ -136,7 +137,8 @@
         </div>
 
         <div id="formPreparer" class="row hidden">
-          <input id="echeancePreparer" type="date" aria-label="Échéance" />
+          <input id="echeancePreparer" type="date" aria-label="Échéance (fin de préparation)" />
+          <input id="dateDevoirPreparer" type="date" aria-label="Date du devoir" />
           <input id="dureeTotale" type="number" min="0" step="15" placeholder="Durée totale (min)" />
           <input id="dureeSession" type="number" min="0" step="5" placeholder="Durée par session (min)" />
         </div>
@@ -271,9 +273,11 @@
       descriptionInput:document.getElementById('descriptionInput'),
       dateRevision:document.getElementById('dateRevision'),
       echeanceRendre:document.getElementById('echeanceRendre'),
+      dateDevoirRendre:document.getElementById('dateDevoirRendre'),
       prioriteRendre:document.getElementById('prioriteRendre'),
       progressRendre:document.getElementById('progressRendre'),
       echeancePreparer:document.getElementById('echeancePreparer'),
+      dateDevoirPreparer:document.getElementById('dateDevoirPreparer'),
       dureeTotale:document.getElementById('dureeTotale'),
       dureeSession:document.getElementById('dureeSession'),
       ouvrageTitre:document.getElementById('ouvrageTitre'),
@@ -286,6 +290,25 @@
       rechercheAgenda:document.getElementById('rechercheAgenda'),
       btnGoToday:document.getElementById('btnGoToday')
     };
+
+    // --- Afficher/masquer les blocs spécifiques + préremplir la date si vide ---
+    document.getElementById('typeSelect').addEventListener('change',(e)=>{
+      const t=e.target.value;
+      document.getElementById('formRevision').classList.toggle('hidden', t!=='revision');
+      document.getElementById('formRendre').classList.toggle('hidden', t!=='devoir_rendre');
+      document.getElementById('formPreparer').classList.toggle('hidden', t!=='devoir_preparer');
+      document.getElementById('formLecture').classList.toggle('hidden', t!=='lecture');
+
+      if(t==='revision' && !els.dateRevision.value) els.dateRevision.value = todayIso();
+      if(t==='devoir_rendre'){
+        if(!els.echeanceRendre.value) els.echeanceRendre.value = todayIso();
+        if(!els.dateDevoirRendre.value) els.dateDevoirRendre.value = els.echeanceRendre.value || todayIso();
+      }
+      if(t==='devoir_preparer'){
+        if(!els.echeancePreparer.value) els.echeancePreparer.value = todayIso();
+        if(!els.dateDevoirPreparer.value) els.dateDevoirPreparer.value = els.echeancePreparer.value || todayIso();
+      }
+    });
 
     function row(it){
       const tpl=document.getElementById('tplItem').content.cloneNode(true);
@@ -302,10 +325,10 @@
           titre: tpl.querySelector('.eTitre').value.trim(),
           description: tpl.querySelector('.eDescription').value.trim()
         };
-        if(patch.type==='revision') patch.baseDate=tpl.querySelector('.eDate').value;
-        if(patch.type==='devoir_rendre') patch.echeance=tpl.querySelector('.eDate').value;
-        if(patch.type==='devoir_preparer') patch.echeance=tpl.querySelector('.eDate').value;
-        if(patch.type==='lecture') patch.echeance=tpl.querySelector('.eDate').value;
+        if(patch.type==='revision') patch.baseDate=tpl.querySelector('.eDate').value || todayIso();
+        if(patch.type==='devoir_rendre') patch.echeance=tpl.querySelector('.eDate').value || todayIso();
+        if(patch.type==='devoir_preparer') patch.echeance=tpl.querySelector('.eDate').value || todayIso();
+        if(patch.type==='lecture') patch.echeance=tpl.querySelector('.eDate').value || todayIso();
         updateItem(it.id, patch);
       });
       tpl.querySelector('[data-delete]').addEventListener('click',()=>deleteItem(it.id));
@@ -326,15 +349,17 @@
       let payload={id:crypto.randomUUID(),type,matiere,titre,description,dateCreation:Date.now(),etat:'a_faire'};
 
       if(type==='revision'){
-        const baseDate=els.dateRevision.value; if(!baseDate) return alert('Date requise.');
+        const baseDate=els.dateRevision.value || todayIso();
         payload={...payload,baseDate,jalons:[...JALONS]};
       }
       if(type==='devoir_rendre'){
-        const echeance=els.echeanceRendre.value; if(!echeance) return alert('Échéance requise.');
-        payload={...payload,echeance,priorite:Number(els.prioriteRendre.value),progress:Number(els.progressRendre.value||0)};
+        const echeance=els.echeanceRendre.value || todayIso();
+        const dateDevoir=els.dateDevoirRendre.value || echeance;
+        payload={...payload,echeance,dateDevoir,priorite:Number(els.prioriteRendre.value||1),progress:Number(els.progressRendre.value||0)};
       }
       if(type==='devoir_preparer'){
-        const echeance=els.echeancePreparer.value; if(!echeance) return alert('Échéance requise.');
+        const echeance=els.echeancePreparer.value || todayIso();
+        const dateDevoir=els.dateDevoirPreparer.value || echeance;
         const dureeTotale=Number(els.dureeTotale.value||0); if(!dureeTotale) return alert('Indique la durée totale estimée.');
         const dureeSession=Number(els.dureeSession.value||0) || 25;
         const sessions=[]; let cumul=0; let cursor=toLocalDate(todayIso());
@@ -342,7 +367,7 @@
           sessions.push({date:isoDate(cursor),duree:Math.min(dureeSession,dureeTotale-cumul),fait:false});
           cursor=addDays(cursor,1); cumul+=dureeSession;
         }
-        payload={...payload,echeance,dureeTotale,dureeSession,sessions,progress:0};
+        payload={...payload,echeance,dateDevoir,dureeTotale,dureeSession,sessions,progress:0};
       }
       if(type==='lecture'){
         const echeance=todayIso();
@@ -409,6 +434,18 @@
       return Number(it.progress||0);
     }
 
+    function addReminderEntriesByDate(map, dateStr, titre, matiere){
+      if(!dateStr) return;
+      const dEvent = toLocalDate(dateStr);
+      for(let k=5;k>=1;k--){
+        const d = isoDate(addDays(dEvent, -k));
+        (map[d] ||= []).push({type:'rappel', matiere, titre, desc:`Rappel J-${k} avant devoir`, prog:''});
+      }
+      // Optionnel : ajouter le jour J
+      // const dayJ = isoDate(dEvent);
+      // (map[dayJ] ||= []).push({type:'rappel', matiere, titre, desc:'Jour du devoir', prog:''});
+    }
+
     function renderPlanning(){
       els.planningHeader.innerHTML=''; els.planningRow.innerHTML='';
       const base=new Date(); base.setHours(0,0,0,0);
@@ -423,6 +460,7 @@
       }
 
       const itemsByDate={};
+      // Révisions
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
         (r.jalons||[]).forEach((j,idx)=>{
@@ -430,15 +468,20 @@
           (itemsByDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/(r.jalons.length||1))*100)});
         });
       });
+      // Devoir à préparer
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
         (p.sessions||[]).forEach(s=>{
           (itemsByDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0});
         });
         (itemsByDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
+        addReminderEntriesByDate(itemsByDate, p.dateDevoir, p.titre, p.matiere);
       });
+      // Devoir à rendre
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         (itemsByDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
+        addReminderEntriesByDate(itemsByDate, dv.dateDevoir, dv.titre, dv.matiere);
       });
+      // Lecture
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
         (le.repartition||[]).forEach(part=>{
           (itemsByDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)});
@@ -449,13 +492,14 @@
         const td = els.planningRow.querySelector(`td[data-date="${d}"]`);
         const items = itemsByDate[d]||[];
         if(!items.length){ td.innerHTML = `<div class="muted">Rien de prévu.</div>`; return; }
-        td.innerHTML = items.map(it=>`<div class="pill"><strong>${esc(it.titre)}</strong> — ${esc(it.matiere)} <span class="muted">· ${esc(it.desc||'')}</span> <span class="muted">· ${it.prog}%</span></div>`).join('<br>');
+        td.innerHTML = items.map(it=>`<div class="pill"><strong>${esc(it.titre)}</strong> — ${esc(it.matiere)} <span class="muted">· ${esc(it.desc||'')}</span> ${it.prog!==''?`<span class="muted">· ${it.prog}%</span>`:''}</div>`).join('<br>');
       });
     }
 
     function renderAgenda(){
       const tbody=els.agendaTable; tbody.innerHTML='';
       const byDate={};
+      // Révisions
       store.items.filter(i=>i.type==='revision').forEach(r=>{
         const base=toLocalDate(r.baseDate);
         (r.jalons||[]).forEach((j,idx)=>{
@@ -463,13 +507,18 @@
           (byDate[d] ||= []).push({type:'revision', matiere:r.matiere, titre:r.titre, desc:`Révision J+${j}`, prog:Math.round(((idx+1)/(r.jalons.length||1))*100)});
         });
       });
+      // Devoir à préparer
       store.items.filter(i=>i.type==='devoir_preparer').forEach(p=>{
         (p.sessions||[]).forEach(s=>{ (byDate[s.date] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:`Session ${s.duree} min`, prog: s.fait?100:0}); });
         (byDate[p.echeance] ||= []).push({type:'devoir_preparer', matiere:p.matiere, titre:p.titre, desc:'Échéance', prog: percentFor(p)});
+        addReminderEntriesByDate(byDate, p.dateDevoir, p.titre, p.matiere);
       });
+      // Devoir à rendre
       store.items.filter(i=>i.type==='devoir_rendre').forEach(dv=>{
         (byDate[dv.echeance] ||= []).push({type:'devoir_rendre', matiere:dv.matiere, titre:dv.titre, desc:'À rendre', prog:Number(dv.progress||0)});
+        addReminderEntriesByDate(byDate, dv.dateDevoir, dv.titre, dv.matiere);
       });
+      // Lecture
       store.items.filter(i=>i.type==='lecture').forEach(le=>{
         (le.repartition||[]).forEach(part=>{ (byDate[part.date] ||= []).push({type:'lecture', matiere:le.matiere, titre:le.ouvrage?.titre||le.titre, desc:`${part.chapitres}`, prog: percentFor(le)}); });
       });
@@ -480,7 +529,7 @@
         (byDate[date]||[]).forEach(it=>{
           const line=[date,it.titre,it.matiere,it.desc, String(it.prog)];
           if(!q || line.join(' ').toLowerCase().includes(q)){
-            rows.push(`<tr><td>${esc(date)}</td><td>${esc(it.titre)}</td><td>${esc(it.matiere)}</td><td>${esc(it.desc||'')}</td><td>${it.prog}%</td></tr>`);
+            rows.push(`<tr><td>${esc(date)}</td><td>${esc(it.titre)}</td><td>${esc(it.matiere)}</td><td>${esc(it.desc||'')}</td><td>${it.prog!==''?esc(it.prog)+'%':''}</td></tr>`);
           }
         });
       });
@@ -496,8 +545,6 @@
 
       const today = todayIso();
       let target = rows.find(r => (r.children[0]?.textContent||'').trim() === today);
-
-      // si pas de ligne pour aujourd’hui, prendre la prochaine date future
       if(!target){
         target = rows.find(r => (r.children[0]?.textContent||'') >= today) || rows[rows.length-1];
       }
@@ -534,7 +581,6 @@
           event:'*', schema:'public', table:'items_v3',
           filter:`owner_id=eq.${user.id}`
         }, (payload)=>{
-          // console.log('[RT]', payload.eventType, payload);
           const ev = payload.eventType;
           if(ev==='INSERT' || ev==='UPDATE'){
             const it = payload.new?.data; if(!it?.id) return;
@@ -546,7 +592,7 @@
           }
           renderItems(); renderPlanning(); renderAgenda();
         })
-        .subscribe((status)=>{ /* console.log('[RT status]', status); */ });
+        .subscribe();
     }
     async function disableRealtime(){
       if(window.itemsChannel){ try{ await window.sb.removeChannel(window.itemsChannel); }catch{} window.itemsChannel=null; }
