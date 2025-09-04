@@ -147,6 +147,7 @@
           <input id="ouvrageTitre" placeholder="Titre de l’ouvrage" />
           <input id="ouvrageAuteur" placeholder="Auteur" />
           <input id="chapitresTotal" type="number" min="1" step="1" placeholder="Nombre de chapitres" />
+          <input id="echeanceLecture" type="date" aria-label="Échéance de lecture" />
         </div>
 
         <div class="row">
@@ -283,6 +284,7 @@
       ouvrageTitre:document.getElementById('ouvrageTitre'),
       ouvrageAuteur:document.getElementById('ouvrageAuteur'),
       chapitresTotal:document.getElementById('chapitresTotal'),
+      echeanceLecture:document.getElementById('echeanceLecture'),
       listeItems:document.getElementById('listeItems'),
       planningHeader:document.getElementById('planningHeader'),
       planningRow:document.getElementById('planningRow'),
@@ -307,6 +309,9 @@
       if(t==='devoir_preparer'){
         if(!els.echeancePreparer.value) els.echeancePreparer.value = todayIso();
         if(!els.dateDevoirPreparer.value) els.dateDevoirPreparer.value = els.echeancePreparer.value || todayIso();
+      }
+      if(t==='lecture'){
+        if(!els.echeanceLecture.value) els.echeanceLecture.value = todayIso();
       }
     });
 
@@ -370,11 +375,27 @@
         payload={...payload,echeance,dateDevoir,dureeTotale,dureeSession,sessions,progress:0};
       }
       if(type==='lecture'){
-        const echeance=todayIso();
+        const echeance = els.echeanceLecture.value || todayIso(); // nouvelle échéance lecture
         const chapitres=Number(els.chapitresTotal.value||0); if(!chapitres) return alert('Indique le nombre de chapitres.');
         const ouvrage={titre:els.ouvrageTitre.value.trim(),auteur:els.ouvrageAuteur.value.trim(),chapitres};
-        const repartition=[]; let cursor=toLocalDate(todayIso());
-        for(let i=1;i<=chapitres;i++){ repartition.push({date:isoDate(cursor),chapitres:`Chapitre ${i}`}); cursor=addDays(cursor,1);}
+
+        // Répartition uniforme de la lecture entre aujourd’hui (date d’entrée) et l’échéance
+        const start = toLocalDate(todayIso());
+        const end = toLocalDate(echeance);
+        let days = Math.floor((end - start)/(1000*60*60*24)) + 1;
+        if (days < 1) days = 1;
+        const perDay = Math.ceil(chapitres / days);
+        const repartition=[];
+        let chapter = 1;
+        let cursor = new Date(start);
+        for (let d=0; d<days && chapter<=chapitres; d++){
+          const from = chapter;
+          const to = Math.min(chapitres, chapter + perDay - 1);
+          repartition.push({ date: isoDate(cursor), chapitres: from===to ? `Chapitre ${from}` : `Chapitres ${from}-${to}` });
+          chapter = to + 1;
+          cursor = addDays(cursor,1);
+        }
+
         payload={...payload,echeance,ouvrage,repartition,lus:0};
       }
 
@@ -441,9 +462,6 @@
         const d = isoDate(addDays(dEvent, -k));
         (map[d] ||= []).push({type:'rappel', matiere, titre, desc:`Rappel J-${k} avant devoir`, prog:''});
       }
-      // Optionnel : ajouter le jour J
-      // const dayJ = isoDate(dEvent);
-      // (map[dayJ] ||= []).push({type:'rappel', matiere, titre, desc:'Jour du devoir', prog:''});
     }
 
     function renderPlanning(){
