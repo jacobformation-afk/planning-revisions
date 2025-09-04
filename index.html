@@ -7,6 +7,8 @@
   <style>
     :root{
       --bg:#0b1220; --card:#121a2b; --muted:#a6b0c3; --text:#e9eef7; --primary:#4caf50; --accent:#2c3e50; --danger:#e74c3c;
+      --dayA: rgba(255, 235, 59, 0.18);   /* jaune clair (amber) */
+      --dayB: rgba(207, 216, 220, 0.16);  /* gris clair (blue-grey 200) */
     }
     *{box-sizing:border-box}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue";margin:0;color:var(--text);background:linear-gradient(180deg,#0b1220,#0d1424 35%,#0f1628)}
@@ -34,6 +36,10 @@
     th,td{border:1px solid #223352;padding:.5rem;text-align:left;vertical-align:top}
     th{background:#0f172a}
     .badge{display:inline-block;padding:.2rem .5rem;border-radius:999px;border:1px solid #223352;background:#0f172a;font-size:.85rem}
+
+    /* Alternance de couleurs par journée dans l'Agenda */
+    tbody tr.dayA td{ background: var(--dayA); }
+    tbody tr.dayB td{ background: var(--dayB); }
 
     /* Highlight pour "Aujourd'hui" */
     tr.flash td{ animation: flashBg 1.5s ease; }
@@ -543,13 +549,18 @@
 
       const q=els.rechercheAgenda.value.trim().toLowerCase();
       const rows=[];
+      let groupIndex=0;
       Object.keys(byDate).sort().forEach(date=>{
+        const groupClass = (groupIndex % 2 === 0) ? 'dayA' : 'dayB';
+        let pushed=false;
         (byDate[date]||[]).forEach(it=>{
           const line=[date,it.titre,it.matiere,it.desc, String(it.prog)];
           if(!q || line.join(' ').toLowerCase().includes(q)){
-            rows.push(`<tr><td>${esc(date)}</td><td>${esc(it.titre)}</td><td>${esc(it.matiere)}</td><td>${esc(it.desc||'')}</td><td>${it.prog!==''?esc(it.prog)+'%':''}</td></tr>`);
+            rows.push(`<tr class="${groupClass}"><td>${esc(date)}</td><td>${esc(it.titre)}</td><td>${esc(it.matiere)}</td><td>${esc(it.desc||'')}</td><td>${it.prog!==''?esc(it.prog)+'%':''}</td></tr>`);
+            pushed=true;
           }
         });
+        if(pushed) groupIndex++; // alterner uniquement si au moins une ligne affichée pour cette date
       });
       tbody.innerHTML=rows.join('');
     }
